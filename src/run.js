@@ -411,7 +411,7 @@ async function runTest()
 }
 
 // command: 
-//      node src/run --user=13 --pacingtime=1 --rampuprate=1 --stepuser=12 --stepholdtime=60 --finalholdtime=600
+//      node src/run --user=13 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=60 --finalholdtime=600
 // once: 
 //      node src/run --user=90 --once
 runTest();

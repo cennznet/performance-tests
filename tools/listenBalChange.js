@@ -48,7 +48,7 @@ async function listenBalChange(seed) {
 async function test() {
 
 
-    await listenBalChange('5GoF8HcRm3iW2bQHCLDwb55Hq1vHrwscjjnp6BqJ9uCQNf5e')
+    await listenBalChange('5CxGSuTtvzEctvocjAGntoaS6n6jPQjQHp7hDG1gAuxGvbYJ')
 }
 
 
