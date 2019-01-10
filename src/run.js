@@ -293,7 +293,7 @@ async function before() // before test run
 {
     // create log file and add column title
     logRecord('time, user_count, tps, rpt, OK, KO, block_time, block_tx_cnt')
-
+    
     // monitor the block
     await subscribeBlockTx()
 
@@ -310,6 +310,8 @@ async function after()  // after test done
 }
 
 //  =========================== parameters
+var ws = []; // ws server ip list
+
 // transaction details
 var trans_total = 0;
 var trans_done = 0;
@@ -357,7 +359,9 @@ function getArgs()
 {
     const argv = require('yargs').argv;
     console.log(argv)
-    
+
+    // argv.ws ? global.ws = argv.ws : global.ws = 'ws://127.0.0.1:9944';
+    argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
     if ( argv.user > 0 ) totalUserCount = argv.user;
     if ( argv.pacingtime > 0 ) pacingTime = argv.pacingtime * 1000;
     if ( argv.rampuprate > 0 ) rampupRate = argv.rampuprate;
@@ -374,6 +378,7 @@ function getArgs()
 
     if ( rampupRate > totalUserCount ) rampupRate = totalUserCount;
     if ( stepUsers > totalUserCount ) stepUsers = totalUserCount;
+
 }
 
 async function runTest()
@@ -411,7 +416,7 @@ async function runTest()
 }
 
 // command: 
-//      node src/run --user=13 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=60 --finalholdtime=600
+//      node src/run --user=13 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
 // once: 
 //      node src/run --user=90 --once
 runTest();

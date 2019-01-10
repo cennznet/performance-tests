@@ -4,12 +4,14 @@ const { WsProvider } = require('@polkadot/rpc-provider');
 const { Keyring } = require('@polkadot/keyring');
 const { stringToU8a, hexToBn } = require('@polkadot/util');
 
-const config = require('../config.js');
+// const config = require('../config.js');
 
 const typeRegistry = require('@polkadot/types/codec/typeRegistry');
 typeRegistry.default.register({
     AssetId: 'u32'
 });
+
+global.wsIp = []; // ws ip, TODO: will be an array
 
 global.send = send;
 global.sendWaitConfirm = sendWaitConfirm;
@@ -33,7 +35,7 @@ var blockSubscriptionId = 0;
 // create api
 async function init() {
     if (null == api) {
-        let provider = new WsProvider(config.nodeServerWsIp);
+        let provider = new WsProvider(wsIp);
         api = await ApiPromise.create(provider);
     }
 }
@@ -123,7 +125,7 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
         // Retrieve the nonce for Alice, to be used to sign the transaction
         await init();
         const nonce = await api.query.system.accountNonce(fromAccount.address());
-        console.log('nonce = ', nonce)
+        // console.log('nonce = ', nonce)
         
         const transfer = api.tx.balances.transfer(toAddress, amount);
 
@@ -137,7 +139,7 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
         const hash = await new Promise(async (resolve,reject) => {
             await transfer.send((r) => {
                 if ( r.type == 'Finalised' ){
-                    console.log('hash =', r.status.raw.toString())
+                    // console.log('hash =', r.status.raw.toString())
                     resolve(r.status.raw.toString()); // get hash
                 }
             }).catch((error) => {
@@ -148,8 +150,10 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
 
         // console.log(`Hash = ${hash}, lengh = ${hash.toString().length}`);
 
-        if (hash.length == 66)
+        if (hash.length == 66){
             bSucc = true;
+            message = 'hash = ' + hash;
+        }   
         else
             bSucc = false;
     }
@@ -196,8 +200,10 @@ async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = t
         if ( isWaitResult ){
             const hash = await transfer.send();
 
-            if (hash.toString().length == 66)
+            if (hash.toString().length == 66){
+                message = 'hash = ' + hash;
                 bSucc = true;
+            }
             else
                 bSucc = false;
         }

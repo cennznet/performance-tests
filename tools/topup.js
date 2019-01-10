@@ -2,6 +2,12 @@ require('../src/api/transaction')
 require('../src/parameter');
 require('../src/api/general')
 
+function getArgs()
+{
+    const argv = require('yargs').argv;
+    argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
+}
+
 // test code
 async function topup(fileName, startId = 0) {
     let fromSeedLst = ['Alice','Bob','Eve','Dave']                       // local machine
@@ -37,9 +43,15 @@ async function topup(fileName, startId = 0) {
 
 async function run()
 {
+    getArgs()
     await topup('address_from.csv')
     await topup('address_to.csv')
     process.exit(1)
 }
 
 run()
+
+/*  run cmd:
+    1. local:   node tools/topup
+    2. remote:  node tools/topup --ws ws://10.1.1.100:9944
+*/

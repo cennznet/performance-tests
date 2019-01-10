@@ -3,7 +3,7 @@
 // Import the API
 const { ApiPromise } = require('@polkadot/api');
 const { WsProvider } = require('@polkadot/rpc-provider');
-const config = require('../src/config.js');
+// const config = require('../src/config.js');
 
 const typeRegistry = require('@polkadot/types/codec/typeRegistry');
 typeRegistry.default.register({
@@ -14,11 +14,18 @@ var api = null;//await ApiPromise.create();
 
 // const nodeServerWsIp = 'ws://cennznet-node-1.centrality.me:9944';
 // const nodeServerWsIp = 'ws://127.0.0.1:9944';
+var nodeServerWsIp = ""
+
+function getArgs()
+{
+    const argv = require('yargs').argv;
+    argv.ws ? nodeServerWsIp = argv.ws : nodeServerWsIp = 'ws://127.0.0.1:9944';
+}
 
 // create api
 async function init() {
     if (null == api) {
-        let provider = new WsProvider(config.nodeServerWsIp);
+        let provider = new WsProvider(nodeServerWsIp);
         api = await ApiPromise.create(provider);
     }
 }
@@ -75,5 +82,10 @@ async function main() {
     console.log(`subsciptionId: ${subscriptionId}`);
 }
 
+getArgs()
 main().catch(console.error);
 
+/*  run cmd:
+    1. local:   node tools/monitorBlockTxCnt
+    2. remote:  node tools/monitorBlockTxCnt --ws ws://10.1.1.100:9944
+*/

@@ -14,7 +14,7 @@ pipeline {
   stages {
     stage('Build Docker Image') {
       steps {
-        sh './docker-build.sh'   // ???
+        sh 'docker build -t perftest_substrate_js'   // ???
       }
     }
   }
