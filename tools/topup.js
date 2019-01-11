@@ -2,10 +2,13 @@ require('../src/api/transaction')
 require('../src/parameter');
 require('../src/api/general')
 
+var interval = 0;
+
 function getArgs()
 {
     const argv = require('yargs').argv;
     argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
+    argv.i ? interval = argv.i : interval = 50;    // time interval
 }
 
 // test code
@@ -32,7 +35,7 @@ async function topup(fileName, startId = 0) {
                 await sleep(1000)
             }
         }
-        await sleep(50)
+        await sleep(interval)
     }
 
     // process.exit(1)
@@ -52,6 +55,6 @@ async function run()
 run()
 
 /*  run cmd:
-    1. local:   node tools/topup
-    2. remote:  node tools/topup --ws ws://10.1.1.100:9944
+    1. local:   node tools/topup -i 100
+    2. remote:  node tools/topup -i 100 --ws ws://10.1.1.100:9944
 */

@@ -257,7 +257,8 @@ async function injectUser(totalUserCount) {
             if (!bAfterFinalHold && 
                 stepUsers > 0 &&
                 currUserCount > 0 &&
-                (currUserCount % stepUsers == 0)) {
+                (currUserCount % stepUsers == 0) &&
+                (currUserCount >= startUserCount)) {    // for the 'startUserCount' users, don't hold
 
                 console.log('--------> stepHoldTime = ',stepHoldTime)
                 await sleep(stepHoldTime)
@@ -266,7 +267,8 @@ async function injectUser(totalUserCount) {
         }
 
         // do not sleep after step holding
-        if (!bAfterStepHold && !bAfterFinalHold)
+        if (!bAfterStepHold && !bAfterFinalHold && 
+            (currUserCount >= startUserCount) )  // for the 'startUserCount' users, don't sleep
             await sleep(1000)
     }
 
@@ -346,6 +348,7 @@ var userId = 0;         // user id starts from 0
 // user ramp-up
 var isRunOnce = false;        // each user only run one tx, then exit
 var totalUserCount = 0;
+var startUserCount = 0;
 var pacingTime = 0;
 var rampupRate = 0;         // users per second
 var stepUsers = 0;          // inject the specified amount of users in each step
@@ -360,9 +363,9 @@ function getArgs()
     const argv = require('yargs').argv;
     console.log(argv)
 
-    // argv.ws ? global.ws = argv.ws : global.ws = 'ws://127.0.0.1:9944';
     argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
     if ( argv.user > 0 ) totalUserCount = argv.user;
+    if ( argv.startuser > 0 ) startUserCount = argv.startuser;
     if ( argv.pacingtime > 0 ) pacingTime = argv.pacingtime * 1000;
     if ( argv.rampuprate > 0 ) rampupRate = argv.rampuprate;
     if ( argv.stepuser > 0 ) stepUsers = argv.stepuser;
@@ -416,7 +419,7 @@ async function runTest()
 }
 
 // command: 
-//      node src/run --user=13 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
+//      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
 // once: 
-//      node src/run --user=90 --once
+//      node src/run --ws=ws://127.0.0.1:9944 --once --user=90 
 runTest();
