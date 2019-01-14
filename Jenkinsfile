@@ -15,7 +15,7 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         echo 'build image...'
-        sh 'docker build -t perftest_substrate' 
+        sh 'docker build -t perftest_substrate .' 
 
         echo 'clean useless images...'
         sh 'set +e' // ignore error below
