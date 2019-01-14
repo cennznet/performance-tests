@@ -388,14 +388,17 @@ async function runTest()
 {
     await getArgs();
 
-    if ( totalUserCount <= 0 ) return
+    if ( totalUserCount <= 0 ) {
+        console.log('Bad command: Need user count.')
+        process.exit(1)
+        return
+    }
 
     await loadTestData();
     await before();
     // await init();
     // await sleep(5000);
 
-    
     injectUser(totalUserCount).then( response => {
     
         console.log('finish')

@@ -113,7 +113,7 @@ io.sockets.on('connection', function (socket) {
 function startHttpServer()
 {
     app.listen(3000, function(){
-        console.log('Chart server started (listening on port:3000)');
+        // console.log('Chart server started (listening on port:3000)');
     });
 }
 

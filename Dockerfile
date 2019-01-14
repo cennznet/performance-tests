@@ -6,3 +6,5 @@ COPY . /perftestjs
 RUN apt-get update && \
     apt-get install vim -y && \
     npm install
+
+ENTRYPOINT [ "node","src/run" ]
