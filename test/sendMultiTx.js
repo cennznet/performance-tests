@@ -17,7 +17,7 @@ async function test() {
 
     console.log(`Time for tx = ${(t)/1000}`);
 
-    // await process.exit(1)
+    // await process.exit()
 }
 
 test()

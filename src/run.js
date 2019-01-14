@@ -256,13 +256,13 @@ async function injectUser(totalUserCount) {
 
             // step holding
             if (!bAfterFinalHold && 
-                stepUsers > 0 &&
+                stairUsers > 0 &&
                 currUserCount > 0 &&
-                (currUserCount % stepUsers == 0) &&
+                (currUserCount % stairUsers == 0) &&
                 (currUserCount >= startUserCount)) {    // for the 'startUserCount' users, don't hold
 
-                console.log('--------> stepHoldTime = ',stepHoldTime)
-                await sleep(stepHoldTime)
+                console.log('--------> stairHoldTime = ',stairHoldTime)
+                await sleep(stairHoldTime)
                 bAfterStepHold = true
             }
         }
@@ -309,7 +309,7 @@ async function after()  // after test done
     unsubscribeBlockTx()
     // await stopHttpServer()
     console.log('nonceList = ',nonceList[0]);
-    process.exit(1);
+    process.exit();
 }
 
 //  =========================== parameters
@@ -352,10 +352,10 @@ var totalUserCount = 0;
 var startUserCount = 0;
 var pacingTime = 0;
 var rampupRate = 0;         // users per second
-var stepUsers = 0;          // inject the specified amount of users in each step
-var stepHoldTime = 0;
+var stairUsers = 0;          // inject the specified amount of users in each step
+var stairHoldTime = 0;
 var finalHoldTime = 0;      // runing time after inject all users
-var totalRunTime = (stepUsers * 1000 / rampupRate + stepHoldTime) * (totalUserCount / stepUsers) + finalHoldTime;
+var totalRunTime = (stairUsers * 1000 / rampupRate + stairHoldTime) * (totalUserCount / stairUsers) + finalHoldTime;
 // TODO: maybe a bug on totalRunTime when value = NaN
 
 // ============ start test ============ //
@@ -371,23 +371,23 @@ async function getArgs()
     }
 
     argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
-    if ( argv.user > 0 ) totalUserCount = argv.user;
-    if ( argv.startuser > 0 ) startUserCount = argv.startuser;
-    if ( argv.pacingtime > 0 ) pacingTime = argv.pacingtime * 1000;
-    if ( argv.rampuprate > 0 ) rampupRate = argv.rampuprate;
-    if ( argv.stepuser > 0 ) stepUsers = argv.stepuser;
-    if ( argv.stepholdtime > 0 ) stepHoldTime = argv.stepholdtime * 1000;
-    if ( argv.finalholdtime > 0 ) finalHoldTime = argv.finalholdtime * 1000;
+    if ( argv.user > 0 )            totalUserCount  = argv.user;
+    if ( argv.startuser > 0 )       startUserCount  = argv.startuser;
+    if ( argv.pacingtime > 0 )      pacingTime      = argv.pacingtime * 1000;
+    if ( argv.rampuprate > 0 )      rampupRate      = argv.rampuprate;
+    if ( argv.stairuser > 0 )       stairUsers      = argv.stairuser;
+    if ( argv.stairholdtime > 0 )   stairHoldTime   = argv.stairholdtime * 1000;
+    if ( argv.finalholdtime > 0 )   finalHoldTime   = argv.finalholdtime * 1000;
 
     if ( argv.once ) {
         isRunOnce = true;
-        stepUsers = 0;
-        stepHoldTime = 0;
+        stairUsers = 0;
+        stairHoldTime = 0;
         finalHoldTime = 0;
     }
 
     if ( rampupRate > totalUserCount ) rampupRate = totalUserCount;
-    if ( stepUsers > totalUserCount ) stepUsers = totalUserCount;
+    if ( stairUsers > totalUserCount ) stairUsers = totalUserCount;
 
     
 }
@@ -430,7 +430,7 @@ async function runTest()
 }
 
 // command: 
-//      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
+//      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
 // once: 
 //      node src/run --ws=ws://127.0.0.1:9944 --once --user=10 
 //      node src/run --ws=ws://docker.for.mac.localhost:9944 --once --user=10 

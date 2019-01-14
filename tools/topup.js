@@ -45,7 +45,7 @@ async function topup(fileName, startId = 0, endId = 10000) {
         await sleep(interval)
     }
 
-    // process.exit(1)
+    // process.exit()
 }
 
 

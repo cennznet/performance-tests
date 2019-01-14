@@ -38,7 +38,7 @@ pipeline {
         sh 'docker run ${DOCKER_IMAGE_NAME} --once --user=10 --ws=ws://3.1.51.215:9944'   
 
         echo 'Run simnple load test...'
-        sh 'docker run ${DOCKER_IMAGE_NAME} --user=10 -startuser=1 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=30 --finalholdtime=60 --ws=ws://3.1.51.215:9944'
+        sh 'docker run ${DOCKER_IMAGE_NAME} --user=10 -startuser=1 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=30 --finalholdtime=60 --ws=ws://3.1.51.215:9944'
       }
     }
   }
