@@ -13,23 +13,35 @@ function sleep(ms)
 
 function logRecord(str)
 {
-    let fileName = recordFilePrefix + ' - test_Records';
+    let fileName = recordFilePrefix + ' - test_records';
 
     fs.appendFile(`result/${fileName}`, `${str}\n`,  (err)=> {
         if(err) console.log(err.message);
     });
 
-    fs.appendFile(`result/latestResult`, `${str}\n`,  (err)=> {
-        if(err) console.log(err.message);
-    });
+    // fs.appendFile(`result/latestResult`, `${str}\n`,  (err)=> {
+    //     if(err) console.log(err.message);
+    // });
 }
 
-try{
-    fs.unlinkSync('result/latestResult')
+const resultDir = './result'
+if (!fs.existsSync(resultDir)){
+    fs.mkdirSync(resultDir)
 }
-catch{
-    // console.log("Cannot find file 'latestResult'")
-}
+// try{
+//     fs.unlinkSync('./result')
+// }
+// catch{
+//     console.log("Cannot find folder 'result', create it...")
+//     fs.mkdirSync('./result')
+// }
+
+// try{
+//     fs.unlinkSync('result/latestResult')
+// }
+// catch{
+//     console.log("Cannot find file 'latestResult'")
+// }
 
 
 

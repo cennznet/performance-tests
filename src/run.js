@@ -6,6 +6,7 @@ require('./parameter');
 // const tx = require('./api/transaction')
 require('./api/transaction')
 require('./html_chart/server')
+const topupAll = require('../tools/topup')
 
 
 async function callUserScenario(userId) {
@@ -358,10 +359,16 @@ var totalRunTime = (stepUsers * 1000 / rampupRate + stepHoldTime) * (totalUserCo
 // TODO: maybe a bug on totalRunTime when value = NaN
 
 // ============ start test ============ //
-function getArgs()
+async function getArgs()
 {
     const argv = require('yargs').argv;
     console.log(argv)
+
+    // only top up addresses
+    if ( argv.topup ){
+        await topupAll()
+        process.exit()
+    }
 
     argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
     if ( argv.user > 0 ) totalUserCount = argv.user;
@@ -382,6 +389,7 @@ function getArgs()
     if ( rampupRate > totalUserCount ) rampupRate = totalUserCount;
     if ( stepUsers > totalUserCount ) stepUsers = totalUserCount;
 
+    
 }
 
 async function runTest()
@@ -424,5 +432,6 @@ async function runTest()
 // command: 
 //      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
 // once: 
-//      node src/run --ws=ws://127.0.0.1:9944 --once --user=90 
+//      node src/run --ws=ws://127.0.0.1:9944 --once --user=10 
+//      node src/run --ws=ws://docker.for.mac.localhost:9944 --once --user=10 
 runTest();

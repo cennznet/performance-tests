@@ -3,17 +3,20 @@ require('../src/parameter');
 require('../src/api/general')
 
 var interval = 0;
+var testEnv = '';
+var fromSeedLst = [];
 
 function getArgs()
 {
     const argv = require('yargs').argv;
     argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
     argv.i ? interval = argv.i : interval = 50;    // time interval
+    argv.e ? testEnv = argv.e : testEnv = 'local'   // test environment
 }
 
 // test code
 async function topup(fileName, startId = 0) {
-    let fromSeedLst = ['Alice','Bob','Eve','Dave']                       // local machine
+    // let fromSeedLst = ['Alice','Bob','Eve','Dave']                       // local machine
     // let fromSeedLst = ['Andrea','Brooke','Courtney','Drew','Emily','Frank'] // dev
 
     let addrLst = await loadAddrFile(__dirname + '/../data/' + fileName)
@@ -42,19 +45,27 @@ async function topup(fileName, startId = 0) {
 }
 
 
-
-
-async function run()
+async function topupAll()
 {
     getArgs()
+    if (testEnv == 'dev'){
+        // dev
+        fromSeedLst = ['Andrea','Brooke','Courtney','Drew','Emily','Frank'] 
+    }
+    else{
+        // local machine
+        fromSeedLst = ['Alice','Bob','Eve','Dave']  
+    }
+
     await topup('address_from.csv')
     await topup('address_to.csv')
     process.exit(1)
 }
 
-run()
+module.exports = topupAll;
+// topupAll()
 
 /*  run cmd:
-    1. local:   node tools/topup -i 100
-    2. remote:  node tools/topup -i 100 --ws ws://10.1.1.100:9944
+    1. local:   node src/run --topup -i 100 -e dev
+    2. dev:     node src/run --topup -i 100 -e local --ws ws://3.1.51.215:9944
 */
