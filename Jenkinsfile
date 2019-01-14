@@ -9,14 +9,12 @@ pipeline {
     GIT_NAME = 'Jenkins'
     GIT_EMAIL = 'jenkins@centrality.ai'
     GIT_BRANCH = 'master'
+    DOCKER_IMAGE_NAME = 'perftest_substrate'
   }
 
   stages {
     stage('Build Docker Image') {
       steps {
-        script{
-            dockerImageName = 'perftest_substrate'
-        }
         
         echo 'build image...'
         sh 'docker build -t ${dockerImageName} .' 
