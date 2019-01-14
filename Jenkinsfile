@@ -17,7 +17,7 @@ pipeline {
       steps {
         
         echo 'build image...'
-        sh 'docker build -t ${dockerImageName} .' 
+        sh 'docker build -t ${DOCKER_IMAGE_NAME} .' 
 
         // echo 'clean useless images...'
         // sh 'set +e' // ignore error below
@@ -32,13 +32,13 @@ pipeline {
     stage('Run test') {
       steps {
         echo 'Topup test address...'
-        sh 'docker run ${dockerImageName} --topup -i 50 -e local -s 0 -c 10 --ws=ws://3.1.51.215:9944'
+        sh 'docker run ${DOCKER_IMAGE_NAME} --topup -i 50 -e local -s 0 -c 10 --ws=ws://3.1.51.215:9944'
 
         echo 'Run one-time test...'
-        sh 'docker run ${dockerImageName} --once --user=10 --ws=ws://3.1.51.215:9944'   
+        sh 'docker run ${DOCKER_IMAGE_NAME} --once --user=10 --ws=ws://3.1.51.215:9944'   
 
         echo 'Run simnple load test...'
-        sh 'docker run ${dockerImageName} --user=10 -startuser=1 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=30 --finalholdtime=60 --ws=ws://3.1.51.215:9944'
+        sh 'docker run ${DOCKER_IMAGE_NAME} --user=10 -startuser=1 --pacingtime=1 --rampuprate=1 --stepuser=5 --stepholdtime=30 --finalholdtime=60 --ws=ws://3.1.51.215:9944'
       }
     }
   }
