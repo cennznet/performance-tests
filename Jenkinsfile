@@ -14,15 +14,15 @@ pipeline {
   stages {
     stage('Build Docker Image') {
       steps {
-        // build image
+        echo 'build image...'
         sh 'docker build -t perftest_substrate' 
-        
-        // clean useless images
-        set +e // ignore error below
-        sh 'docker rmi $(sudo docker images --filter "dangling=true" -q --no-trunc) -f'
-        set -e
 
-        // list all images
+        echo 'clean useless images...'
+        sh 'set +e' // ignore error below
+        sh 'docker rmi $(sudo docker images --filter "dangling=true" -q --no-trunc) -f'
+        sh 'set -e'
+
+        echo 'list all images...'
         sh 'docker images ls'
       }
     }
