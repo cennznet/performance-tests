@@ -1,10 +1,5 @@
 
 
-global.loadTestAddress = loadTestAddress;
-global.loadAddrFile = loadAddrFile;
-// global.addressListFrom = addressListFrom;
-// global.addressListTo = addressListTo;
-
 global.addressListFrom = [];
 global.addressListTo = [];
 
@@ -38,3 +33,12 @@ async function loadTestAddress()
     // addressListTo = await loadAddrFile(__dirname + '/../data/address_from.csv');
     // addressListFrom = await loadAddrFile(__dirname + '/../data/address_to.csv');
 }
+
+
+// module.exports.addressListFrom = addressListFrom;
+// module.exports.addressListTo = addressListTo;
+// module.exports.addressListFrom = [];
+// module.exports.addressListTo = [];
+
+module.exports.loadAddrFile = loadAddrFile;
+module.exports.loadTestAddress = loadTestAddress;

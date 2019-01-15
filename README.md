@@ -58,13 +58,13 @@ node src/run --ws=ws://127.0.0.1:9944 --user=13 --startuser=10 --pacingtime=1 --
 
 __Build an image__  
 ```bash
-# compile runtime to wasm
+# 
 docker build -t perftest_substrate .
 ```
 
 __Run__
 
-**Note**: When running via docker locally, **ws ip** cannot be omitted, and use 'docker.for.mac.localhost' instead of 'localhost or 127.0.0.1' to.
+**Note**: When running via docker locally, **ws ip** cannot be omitted, and use 'docker.for.mac.localhost' instead of 'localhost or 127.0.0.1'.
 
 ```bash
 # Topup

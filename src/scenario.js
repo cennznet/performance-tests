@@ -1,13 +1,14 @@
 
 
 // import sleep from './api/general'
-require('./api/general');
+// require('./api/general');
 // require('./api/balance');
-require('./api/transaction');
+const {sendWithManualNonce} = require('./api/transaction')
+// require('./api/transaction');
 require('./parameter');
 
 
-global.callScn = callScn;
+// global.callScn = callScn;
 
 async function callScn(userId)  // each user allocated a specified address
 {
@@ -25,6 +26,7 @@ async function _sendTx(userId)
     return returnObj;
 }
 
+/*
 async function _sendTxAndWait(userId)
 {
     let returnObj = [];
@@ -70,7 +72,7 @@ async function _getBal(address)
 {
     return await getAddrBal(address)
 }
-
+*/
 
 // test code
 async function test()
@@ -84,5 +86,6 @@ async function test()
     process.exit()
 }
 
+module.exports = callScn;
 // test()
 

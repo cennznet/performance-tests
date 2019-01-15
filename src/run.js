@@ -1,10 +1,8 @@
-// const _scenario = require('./scenario')
-// import callScn from './scenario'
-require('./scenario')
-require('./api/general')
-require('./parameter');
-// const tx = require('./api/transaction')
-require('./api/transaction')
+
+const callScn = require('./scenario')
+const {logRecord, sleep} = require('./api/general')
+const parameter = require('./parameter');
+const {subscribeBlockTx, unsubscribeBlockTx} = require('./api/transaction')
 require('./html_chart/server')
 const topupAll = require('../tools/topup')
 
@@ -289,7 +287,7 @@ async function injectUser(totalUserCount) {
 }
 
 async function loadTestData(){
-    await loadTestAddress();
+    await parameter.loadTestAddress();
 }
 
 async function before() // before test run
@@ -416,7 +414,7 @@ async function runTest()
         console.log('----- final statistics')
         console.log('test duration = %d(s)', (elapseTime/1000).toFixed(2))
         console.log(`users injected = ${currUserCount}`)
-        console.log('users = %d, OK = %d, KO = %d', currUserCount, trans_succ, trans_fail);
+        console.log('OK = %d, KO = %d', trans_succ, trans_fail);
         console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
         console.log('tps_avg = %f, tps_max = %f', 
                     (trans_succ * 1000/elapseTime).toFixed(2), 

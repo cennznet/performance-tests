@@ -28,25 +28,14 @@ const resultDir = './result'
 if (!fs.existsSync(resultDir)){
     fs.mkdirSync(resultDir)
 }
-// try{
-//     fs.unlinkSync('./result')
-// }
-// catch{
-//     console.log("Cannot find folder 'result', create it...")
-//     fs.mkdirSync('./result')
-// }
-
-// try{
-//     fs.unlinkSync('result/latestResult')
-// }
-// catch{
-//     console.log("Cannot find file 'latestResult'")
-// }
 
 
 
-global.sleep = sleep;
-global.logRecord = logRecord;
+module.exports = {
+    logRecord,
+    sleep,
+}
+
 
 // logRecord('hello')
 // logRecord('hello2')

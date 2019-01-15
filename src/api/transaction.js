@@ -13,14 +13,14 @@ typeRegistry.default.register({
 
 global.wsIp = []; // ws ip, TODO: will be an array
 
-global.send = send;
-global.sendWaitConfirm = sendWaitConfirm;
-global.getAddrBal = getAddrBal;
-// global.init = init;
-global.subscribeBlockTx = subscribeBlockTx;
-global.unsubscribeBlockTx = unsubscribeBlockTx;
-global.sendMulti = sendMulti;
-global.sendWithManualNonce = sendWithManualNonce;
+// global.send = send;
+// global.sendWaitConfirm = sendWaitConfirm;
+// global.getAddrBal = getAddrBal;
+// // global.init = init;
+// global.subscribeBlockTx = subscribeBlockTx;
+// global.unsubscribeBlockTx = unsubscribeBlockTx;
+// global.sendMulti = sendMulti;
+// global.sendWithManualNonce = sendWithManualNonce;
 
 global.sampleMaxBlockTime = 0;
 global.sampleMaxBlockTxCnt = 0;
@@ -396,6 +396,14 @@ function saveNonce(seed, nonce)
     if ( !isExist )
         nonceList.push([seed, nonce])
 }
+
+module.exports.send = send;
+module.exports.sendWaitConfirm = sendWaitConfirm;
+module.exports.getAddrBal = getAddrBal;
+module.exports.subscribeBlockTx = subscribeBlockTx;
+module.exports.unsubscribeBlockTx = unsubscribeBlockTx;
+module.exports.sendMulti = sendMulti;
+module.exports.sendWithManualNonce = sendWithManualNonce;
 
 
 // test code

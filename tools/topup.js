@@ -70,6 +70,6 @@ module.exports = topupAll;
 // topupAll()
 
 /*  run cmd:
-    1. local:   node src/run --topup -i 100 -e dev -s 0 -c 1000
-    2. dev:     node src/run --topup -i 100 -e local -s 0 -c 1000 --ws ws://3.1.51.215:9944
+    1. local:   node src/run --topup -i 50 -s 0 -c 1000
+    2. dev:     node src/run --topup -i 50 -e local -s 0 -c 1000 --ws ws://3.1.51.215:9944
 */
