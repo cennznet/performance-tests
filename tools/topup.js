@@ -1,6 +1,6 @@
-require('../src/api/transaction')
-require('../src/parameter');
-require('../src/api/general')
+const {sendWithManualNonce} = require('../src/api/transaction')
+const {loadAddrFile} = require('../src/parameter');
+const {sleep} = require('../src/api/general')
 
 var interval = 0;
 var testEnv = '';
@@ -29,7 +29,7 @@ async function topup(fileName, startId = 0, endId = 10000) {
     {
         let seedId = i % fromSeedLst.length
         let seed = fromSeedLst[seedId]
-        let toAddress = addrLst[i][3]
+        let toAddress = addrLst[i][1]
 
         console.log(`tx = ${i}, ${seed} -> ${toAddress}`)
 

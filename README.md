@@ -58,7 +58,7 @@ node src/run --ws=ws://127.0.0.1:9944 --user=13 --startuser=10 --pacingtime=1 --
 
 __Build an image__  
 ```bash
-# 
+# Build an image named 'perftest_substrate'
 docker build -t perftest_substrate .
 ```
 

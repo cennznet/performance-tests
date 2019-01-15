@@ -13,8 +13,6 @@ async function callUserScenario(userId) {
     let startTime = 0;
     let endTime = 0
 
-    
-
     startTime = new Date().getTime();
 
     trans_total++;
@@ -183,14 +181,14 @@ async function sample(intervalMs) {
         // console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
         // console.log('tps_avg = %f, tps_max = %f', tps_avg.toFixed(2), tps_max.toFixed(2))
         // console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
-        console.log('-------------- sample:')
+        console.log('-------------- Sample:')
         console.log('sampleValidUserCnt = ', sampleValidUserCnt)
         console.log('sampleSuccTxCnt = ' + sampleSuccTxCnt)
         console.log('sampleAvgRespTime = ' + sampleAvgRespTime.toFixed(2))
         console.log('sampleTps = %f', sampleTps)
         console.log('sampleMaxBlockTime = ', _sampleMaxBlockTime)
         console.log('sampleMaxBlockTxCnt = ', _sampleMaxBlockTxCnt)
-        console.log('-------------- overall:')
+        console.log('-------------- Overall:')
         console.log('elapseTime = %d', elapseTime)
         console.log(`users injected = ${currUserCount}`)
         console.log('users = %d, OK = %d, KO = %d', currUserCount, trans_succ, trans_fail);
@@ -220,7 +218,7 @@ async function injectUser(totalUserCount) {
     let asyncList = []; // 正在进行的所有并发异步操作
     let usersInject = 0;
     monitor();
-    sample(2000);   // get informatin every interval
+    sample(2000);   // get sample informatin every interval
 
     // loop every second
     while (!bTestStop || (currUserCount < totalUserCount)) {
@@ -306,7 +304,7 @@ async function after()  // after test done
 {
     unsubscribeBlockTx()
     // await stopHttpServer()
-    console.log('nonceList = ',nonceList[0]);
+    // console.log('nonceList = ',nonceList[0]);
     process.exit();
 }
 
@@ -411,15 +409,17 @@ async function runTest()
 
         resp_avg = Math.round(resp_total / trans_succ);
 
-        console.log('----- final statistics')
+        console.log('----- Final Statistics')
         console.log('test duration = %d(s)', (elapseTime/1000).toFixed(2))
         console.log(`users injected = ${currUserCount}`)
         console.log('OK = %d, KO = %d', trans_succ, trans_fail);
-        console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
-        console.log('tps_avg = %f, tps_max = %f', 
-                    (trans_succ * 1000/elapseTime).toFixed(2), 
-                    tps_max.toFixed(2))
-        console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
+        if ( !isRunOnce ){
+            console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
+            console.log('tps_avg = %f, tps_max = %f', 
+                        (trans_succ * 1000/elapseTime).toFixed(2), 
+                        tps_max.toFixed(2))
+            console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
+        }
         console.log('-------------------')
 
         after();

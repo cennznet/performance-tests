@@ -1,11 +1,8 @@
 
 
-// import sleep from './api/general'
-// require('./api/general');
-// require('./api/balance');
+
 const {sendWithManualNonce} = require('./api/transaction')
-// require('./api/transaction');
-require('./parameter');
+const {loadTestAddress} = require('./parameter');
 
 
 // global.callScn = callScn;
@@ -19,7 +16,7 @@ async function _sendTx(userId)
 {
     let returnObj = [];
     let seedFrom = addressListFrom[userId][0];
-    let addrTo = addressListTo[userId][3];
+    let addrTo = addressListTo[userId][1];
 
     returnObj = await sendWithManualNonce( seedFrom, addrTo, 1);
 
