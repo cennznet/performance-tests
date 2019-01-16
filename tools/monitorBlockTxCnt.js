@@ -87,5 +87,5 @@ main().catch(console.error);
 
 /*  run cmd:
     1. local:   node tools/monitorBlockTxCnt
-    2. remote:  node tools/monitorBlockTxCnt --ws ws://10.1.1.100:9944
+    2. remote:  node tools/monitorBlockTxCnt --ws ws://3.1.51.215:9944
 */

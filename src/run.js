@@ -2,7 +2,8 @@
 const callScn = require('./scenario')
 const {logRecord, sleep} = require('./api/general')
 const parameter = require('./parameter');
-const {subscribeBlockTx, unsubscribeBlockTx} = require('./api/transaction')
+const {subscribeBlockTx, unsubscribeBlockTx, apiPool} = require('./api/transaction')
+require('./api/transaction')
 require('./html_chart/server')
 const topupAll = require('../tools/topup')
 
@@ -107,11 +108,11 @@ async function sample(intervalMs) {
         sample_list = [];
 
         // get block info
-        let _sampleMaxBlockTime = sampleMaxBlockTime
-        let _sampleMaxBlockTxCnt = sampleMaxBlockTxCnt
+        let _sampleMaxBlockTime = global.sampleMaxBlockTime
+        let _sampleMaxBlockTxCnt = global.sampleMaxBlockTxCnt
         // reset original value to collect next time frame
-        sampleMaxBlockTime = 0;
-        sampleMaxBlockTxCnt = 0;
+        global.sampleMaxBlockTime = 0; 
+        global.sampleMaxBlockTxCnt = 0;
 
 
         let sampleTps = 0.0;
@@ -285,11 +286,14 @@ async function injectUser(totalUserCount) {
 }
 
 async function loadTestData(){
+    console.log('Load test addresses...')
     await parameter.loadTestAddress();
 }
 
 async function before() // before test run
 {
+    console.log('Start test monitor...')
+
     // create log file and add column title
     logRecord('time, user_count, tps, rpt, OK, KO, block_time, block_tx_cnt')
     
@@ -357,6 +361,7 @@ var totalRunTime = (stairUsers * 1000 / rampupRate + stairHoldTime) * (totalUser
 // ============ start test ============ //
 async function getArgs()
 {
+    console.log('Anaylyse input peremeters...')
     const argv = require('yargs').argv;
     console.log(argv)
 
@@ -365,8 +370,11 @@ async function getArgs()
         await topupAll()
         process.exit()
     }
+    
+    // argv.ws ? global.wsIp = argv.ws : global.wsIp = 'ws://127.0.0.1:9944';
+    argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'ws://127.0.0.1:9944');
+    // console.log('apiPool.wsIpLst = ',apiPool.wsIpLst)
 
-    argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
     if ( argv.user > 0 )            totalUserCount  = argv.user;
     if ( argv.startuser > 0 )       startUserCount  = argv.startuser;
     if ( argv.pacingtime > 0 )      pacingTime      = argv.pacingtime * 1000;
@@ -385,13 +393,12 @@ async function getArgs()
     if ( rampupRate > totalUserCount ) rampupRate = totalUserCount;
     if ( stairUsers > totalUserCount ) stairUsers = totalUserCount;
 
-    
 }
 
 async function runTest()
 {
     await getArgs();
-
+    // console.log('runTest...')
     if ( totalUserCount <= 0 ) {
         console.log('Bad command: Need user count.')
         process.exit(1)

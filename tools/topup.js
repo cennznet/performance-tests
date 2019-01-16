@@ -1,4 +1,4 @@
-const {sendWithManualNonce} = require('../src/api/transaction')
+const {sendWithManualNonce, apiPool} = require('../src/api/transaction')
 const {loadAddrFile} = require('../src/parameter');
 const {sleep} = require('../src/api/general')
 
@@ -8,10 +8,11 @@ var fromSeedLst = [];
 var topupCnt = 0;
 var startNum = 0;
 
-function getArgs()
+async function getArgs()
 {
     const argv = require('yargs').argv;
-    argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
+    // argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
+    argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'ws://127.0.0.1:9944');
     argv.i ? interval = argv.i : interval = 50;    // time interval
     argv.e ? testEnv = argv.e : testEnv = 'local'   // test environment
     argv.c ? topupCnt = argv.c : topupCnt = 10000   // total address count to topup, default is 10k
@@ -51,7 +52,7 @@ async function topup(fileName, startId = 0, endId = 10000) {
 
 async function topupAll()
 {
-    getArgs()
+    await getArgs()
     if (testEnv == 'dev'){
         // dev
         fromSeedLst = ['Andrea','Brooke','Courtney','Drew','Emily','Frank'] 
@@ -71,5 +72,5 @@ module.exports = topupAll;
 
 /*  run cmd:
     1. local:   node src/run --topup -i 50 -s 0 -c 1000
-    2. dev:     node src/run --topup -i 50 -e local -s 0 -c 1000 --ws ws://3.1.51.215:9944
+    2. dev:     node src/run --topup -i 50 -e local -s 0 -c 1000 --ws=ws://3.1.51.215:9944
 */
