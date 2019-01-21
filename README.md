@@ -32,9 +32,11 @@ node src/run --topup -i 10 -e local -s 0 -c 1000 --ws=ws://3.1.51.215:9944
 __One-time test__
 ```bash
 # Go to the project folder and run
-node src/run --ws=ws://127.0.0.1:9944 --once --user=10
+node src/run --once --user=10 --nodeSelect=random --ws=ws://127.0.0.1:9944 --ws=ws://localhost:9955
 # parameters:
-#   --ws:   Websocket server ip and port, default ip is 'ws://127.0.0.1:9944'.
+#   --ws:           Websocket server ip and port, default is 'ws://127.0.0.1:9944'.
+#                   Multiple ws servers: Connect to multiple ws servers using more additional '--ws=...', e.g. '--ws=ws://127.0.0.1:9944 --ws=ws://localhost:8844'
+#   --nodeSelect:   Transaction will be sent in a 'sequence' or 'random' way to each ws server, default is 'sequence'.
 #   --once: Each user send only one transaction.
 #   --user: User count.
 ```
@@ -45,7 +47,7 @@ __Scheduled load test__
 node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944 --ws=ws://127.0.0.1:9955 --nodeSelect=random
 # parameters:
 #   --ws:           Websocket server ip and port, default is 'ws://127.0.0.1:9944'.
-#                   Multiple ws servers: Use more '--ws=...' as you want, e.g. '--ws=ws://127.0.0.1:9944 --ws=ws://localhost:8844'
+#                   Multiple ws servers: Connect to multiple ws servers using more additional '--ws=...', e.g. '--ws=ws://127.0.0.1:9944 --ws=ws://localhost:8844'
 #   --nodeSelect:   Transaction will be sent in a 'sequence' or 'random' way to each ws server, default is 'sequence'.
 #   --user:         User count
 #   --startuser:    Default user count at the start of test.
