@@ -20,12 +20,20 @@ global.sampleMaxBlockTxCnt = 0;
 // var api = null;
 var blockSubscriptionId = 0;
 
+const NodeSelectMethod = {
+    SEQUENCE:   'seqence',
+    RANDOM:     'random',
+}
+
 // Manage multiple ws connections
 class ApiPool{
 
     constructor() {
         this._wsIpLst = [];
         this._apiLst = [];
+        this._usage = [];    // The number of call for each api
+        this._apiSelectMethod = NodeSelectMethod.SEQUENCE  // or 'RANDOM'
+        this._currApiId = -1;
     } 
 
     async addWsIp(newWsIp){
@@ -38,9 +46,13 @@ class ApiPool{
         }
         
         // create ws connections for each ip
+        let id = 0
         for ( let wsIp of this._wsIpLst ){
             // console.log(wsIp)
             await this._addApi(wsIp)
+
+            // init _usage
+            this._usage[id++] = 0
         }
     }
 
@@ -50,10 +62,37 @@ class ApiPool{
     }
 
     getWsApiById(id){
+        this._usage[id] ++; // usage + 1
         return this._apiLst[id]
     }
 
-    getRandomWsApi(){
+    setApiSelectMethod(method){
+        switch (method){
+            case    NodeSelectMethod.SEQUENCE:
+                this._apiSelectMethod = NodeSelectMethod.SEQUENCE
+                break;
+            case    NodeSelectMethod.RANDOM:
+                this._apiSelectMethod = NodeSelectMethod.RANDOM
+                break;
+            default:
+                this._apiSelectMethod = NodeSelectMethod.SEQUENCE
+
+        }
+    }
+
+    getWsApi(method = this._apiSelectMethod){
+        let retApi = null;
+        (method == NodeSelectMethod.SEQUENCE) ? retApi = this._getSequentWsApi() : retApi = this._getRandomWsApi();
+
+        return retApi
+    }
+
+    getApiUsage(){
+        return this._usage
+        
+    }
+
+    _getRandomWsApi(){
         let apiCnt = this._apiLst.length
         let randomId = 0;
 
@@ -67,8 +106,17 @@ class ApiPool{
             randomId = Math.floor(random * apiCnt) // get int
             // console.log('randomId = ', randomId)
         }
-        
-        return this._apiLst[randomId]
+        this._currApiId = randomId
+
+        return this.getWsApiById(randomId)
+    }
+
+    _getSequentWsApi(){
+        this._currApiId ++;
+        if ( this._currApiId >= this._apiLst.length ) {
+            this._currApiId = 0
+        }
+        return this.getWsApiById(this._currApiId)
     }
 }
 
@@ -138,61 +186,12 @@ async function getAddrBal(address) {
     return bal
 }
 
-/*
-async function send(fromSeed, toAddress, amount) {
-
-    var bSucc = false;
-    var message = "";
-
-    try {
-        const _fromSeed = fromSeed.padEnd(32, ' ');
-
-        // Create an instance of the keyring
-        const keyring = new Keyring();
-
-        // Add Alice to our keyring (with the known seed for the account)
-        const fromAccount = keyring.addFromSeed(stringToU8a(_fromSeed));
-
-        // Instantiate the API
-        // const provider = new WsProvider(config.nodeServerWsIp);
-        // const api = await ApiPromise.create(provider);
-
-        // Retrieve the nonce for Alice, to be used to sign the transaction
-        await init();
-        const nonce = await api.query.system.accountNonce(fromAccount.address());
-
-        // Create a extrinsic, transferring 12345 units to Bob. We can also create,
-        // sign and send in one operation (as per the samples in the Api documentation),
-        // here we split it out for the sake of readability
-        const transfer = api.tx.balances.transfer(toAddress, amount);
-
-        // Sign the transaction using our account
-        transfer.sign(fromAccount, nonce);
-
-        // Send the transaction and retrieve the bSuccing Hash
-        const hash = await transfer.send();
-
-        // console.log(`Hash = ${hash}, lengh = ${hash.toString().length}`);
-
-        if (hash.toString().length == 66)
-            bSucc = true;
-        else
-            bSucc = false;
-    }
-    catch (e) {
-        message = e
-    }
-
-    return { bSucc, message };
-}
-*/
-
 async function sendWaitConfirm(fromSeed, toAddress, amount) {
 
     var bSucc = false;
     var message = "";
 
-    let api = apiPool.getRandomWsApi()
+    let api = apiPool.getWsApi()
 
     try {
         const _fromSeed = fromSeed.padEnd(32, ' ');
@@ -254,7 +253,7 @@ async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = t
     var bSucc = false;
     var message = "";
 
-    let api = apiPool.getRandomWsApi()
+    let api = apiPool.getWsApi()
 
     try {
         const _fromSeed = fromSeed.padEnd(32, ' ');
@@ -372,7 +371,7 @@ async function unsubscribeBlockTx()
 
 async function sendMulti(fromSeed, toAddressList, amount, txCount) {
 
-    let api = apiPool.getRandomWsApi()
+    let api = apiPool.getWsApi()
 
     try {
         const _fromSeed = fromSeed.padEnd(32, ' ');
@@ -412,83 +411,6 @@ async function sendMulti(fromSeed, toAddressList, amount, txCount) {
     }
 }
 
-/*
-async function getNonce(api, fromSeed) {
-
-    let nonce = null
-
-    try {
-        const _fromSeed = fromSeed.padEnd(32, ' ');
-
-        // Create an instance of the keyring
-        const keyring = new Keyring();
-
-        // Add Alice to our keyring (with the known seed for the account)
-        const fromAccount = keyring.addFromSeed(stringToU8a(_fromSeed));
-
-        // Retrieve the nonce for Alice, to be used to sign the transaction
-        // await init();
-
-        // get current nonce
-        nonce = await api.query.system.accountNonce(fromAccount.address());
-
-        // const prevNonce = getNonceFromList(fromSeed)
-        const currNonceInt = parseInt(nonce.toString())
-        const prevNonceInt = parseInt(getNonceFromList(fromSeed).toString())
-
-        if ( prevNonceInt >= currNonceInt ) // need to use int to compare value, cannot use BN number
-        {
-            // console.log('prevNonce = ', prevNonceInt, 'curr nonce = ', currNonceInt)
-
-            // calculate a new nonce value and save it
-            let newNonceInt = prevNonceInt + 1;
-            nonce = hexToBn(newNonceInt.toString(16)) // convert to BN
-        }
-        
-        // save nonce to the list
-        saveNonce(fromSeed,nonce);
-    }
-    catch (e) {
-        console.log(`Error = ${e}`)
-    }
-
-    // console.log(`return nonce = ${nonce.toString()}`)
-    return nonce
-}
-*/
-
-/*
-function getNonceFromList(seed)
-{
-    let nonce = -1;
-
-    for( let element of nonceList ){
-        if (element[0] == seed){
-            nonce = element[1];
-            break;
-        }
-    }
-
-    return nonce
-}
-*/
-/*
-function saveNonce(seed, nonce)
-{
-    let isExist = false;
-    for( element of nonceList ){
-        if (element[0] == seed )
-        {
-            element[1] = nonce
-            isExist = true
-            break;
-        }
-    };
-
-    if ( !isExist )
-        nonceList.push([seed, nonce])
-}
-*/
 
 const apiPool = new ApiPool();
 const noncePool = new NoncePool();

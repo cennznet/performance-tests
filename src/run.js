@@ -176,6 +176,7 @@ async function sample(intervalMs) {
                    `${_sampleMaxBlockTime},${_sampleMaxBlockTxCnt}`)
 
         console.log('>>>>>>>>>>>>>>>>>>>>>')
+        console.log('current time = ', new Date().toLocaleString())
         // console.log('elapseTime = %d', elapseTime)
         // console.log(`users injected = ${currUserCount}`)
         // console.log('users = %d, OK = %d, KO = %d', currUserCount, trans_succ, trans_fail);
@@ -298,15 +299,17 @@ async function before() // before test run
     logRecord('time, user_count, tps, rpt, OK, KO, block_time, block_tx_cnt')
     
     // monitor the block
-    await subscribeBlockTx()
+    if ( !isRunOnce )
+        await subscribeBlockTx()
 
     // start result chart server
     // startHttpServer()
 }
 
-async function after()  // after test done
+function after()  // after test done
 {
-    unsubscribeBlockTx()
+    if ( !isRunOnce )
+        unsubscribeBlockTx()
     // await stopHttpServer()
     // console.log('nonceList = ',nonceList[0]);
     process.exit();
@@ -373,8 +376,7 @@ async function getArgs()
     
     // argv.ws ? global.wsIp = argv.ws : global.wsIp = 'ws://127.0.0.1:9944';
     argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'ws://127.0.0.1:9944');
-    // console.log('apiPool.wsIpLst = ',apiPool.wsIpLst)
-
+    if ( argv.nodeSelect )          apiPool.setApiSelectMethod(argv.nodeSelect)
     if ( argv.user > 0 )            totalUserCount  = argv.user;
     if ( argv.startuser > 0 )       startUserCount  = argv.startuser;
     if ( argv.pacingtime > 0 )      pacingTime      = argv.pacingtime * 1000;
@@ -427,6 +429,7 @@ async function runTest()
                         tps_max.toFixed(2))
             console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
         }
+        console.log(`total tx in nodes: ${apiPool.getApiUsage()}`)
         console.log('-------------------')
 
         after();
@@ -435,7 +438,7 @@ async function runTest()
 }
 
 // command: 
-//      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
+//      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944 --nodeSelect=random
 // once: 
 //      node src/run --ws=ws://127.0.0.1:9944 --once --user=10 
 //      node src/run --ws=ws://docker.for.mac.localhost:9944 --once --user=10 

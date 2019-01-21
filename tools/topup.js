@@ -21,12 +21,13 @@ async function getArgs()
 
 // test code
 async function topup(fileName, startId = 0, endId = 10000) {
-    // let fromSeedLst = ['Alice','Bob','Eve','Dave']                       // local machine
-    // let fromSeedLst = ['Andrea','Brooke','Courtney','Drew','Emily','Frank'] // dev
+    console.log('Start to top up...')
 
     let addrLst = await loadAddrFile(__dirname + '/../data/' + fileName)
+    console.log('startId = ',startId)
+    console.log('endId = ',endId)
 
-    for ( let i = startId; i < addrLst.length && i < endId ; i++ )
+    for ( let i = startId; i < addrLst.length && i <= endId ; i++ )
     {
         let seedId = i % fromSeedLst.length
         let seed = fromSeedLst[seedId]
@@ -62,8 +63,8 @@ async function topupAll()
         fromSeedLst = ['Alice','Bob','Eve','Dave']  
     }
 
-    await topup('address_from.csv', startNum, endId = startNum + topupCnt)
-    await topup('address_to.csv', startNum, endId = startNum + topupCnt)
+    await topup('address_from.csv', startNum, endId = startNum + topupCnt - 1)
+    await topup('address_to.csv', startNum, endId = startNum + topupCnt - 1)
     process.exit()
 }
 
