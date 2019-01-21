@@ -42,9 +42,11 @@ node src/run --ws=ws://127.0.0.1:9944 --once --user=10
 __Scheduled load test__
 ```bash
 # Go to the project folder and run
-node src/run --ws=ws://127.0.0.1:9944 --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 
+node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944 --ws=ws://127.0.0.1:9955 --nodeSelect=random
 # parameters:
-#   --ws:           Websocket server ip and port, default ip is 'ws://127.0.0.1:9944'.
+#   --ws:           Websocket server ip and port, default is 'ws://127.0.0.1:9944'.
+#                   Multiple ws servers: Use more '--ws=...' as you want, e.g. '--ws=ws://127.0.0.1:9944 --ws=ws://localhost:8844'
+#   --nodeSelect:   Transaction will be sent in a 'sequence' or 'random' way to each ws server, default is 'sequence'.
 #   --user:         User count
 #   --startuser:    Default user count at the start of test.
 #   --pacingtime:   The interval before a user send another transaction.
