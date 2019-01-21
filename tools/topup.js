@@ -1,6 +1,6 @@
-require('../src/api/transaction')
-require('../src/parameter');
-require('../src/api/general')
+const {sendWithManualNonce, apiPool} = require('../src/api/transaction')
+const {loadAddrFile} = require('../src/parameter');
+const {sleep} = require('../src/api/general')
 
 var interval = 0;
 var testEnv = '';
@@ -8,10 +8,11 @@ var fromSeedLst = [];
 var topupCnt = 0;
 var startNum = 0;
 
-function getArgs()
+async function getArgs()
 {
     const argv = require('yargs').argv;
-    argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
+    // argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
+    argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'ws://127.0.0.1:9944');
     argv.i ? interval = argv.i : interval = 50;    // time interval
     argv.e ? testEnv = argv.e : testEnv = 'local'   // test environment
     argv.c ? topupCnt = argv.c : topupCnt = 10000   // total address count to topup, default is 10k
@@ -20,16 +21,17 @@ function getArgs()
 
 // test code
 async function topup(fileName, startId = 0, endId = 10000) {
-    // let fromSeedLst = ['Alice','Bob','Eve','Dave']                       // local machine
-    // let fromSeedLst = ['Andrea','Brooke','Courtney','Drew','Emily','Frank'] // dev
+    console.log('Start to top up...')
 
     let addrLst = await loadAddrFile(__dirname + '/../data/' + fileName)
+    console.log('startId = ',startId)
+    console.log('endId = ',endId)
 
-    for ( let i = startId; i < addrLst.length && i < endId ; i++ )
+    for ( let i = startId; i < addrLst.length && i <= endId ; i++ )
     {
         let seedId = i % fromSeedLst.length
         let seed = fromSeedLst[seedId]
-        let toAddress = addrLst[i][3]
+        let toAddress = addrLst[i][1]
 
         console.log(`tx = ${i}, ${seed} -> ${toAddress}`)
 
@@ -51,7 +53,7 @@ async function topup(fileName, startId = 0, endId = 10000) {
 
 async function topupAll()
 {
-    getArgs()
+    await getArgs()
     if (testEnv == 'dev'){
         // dev
         fromSeedLst = ['Andrea','Brooke','Courtney','Drew','Emily','Frank'] 
@@ -61,8 +63,8 @@ async function topupAll()
         fromSeedLst = ['Alice','Bob','Eve','Dave']  
     }
 
-    await topup('address_from.csv', startNum, endId = startNum + topupCnt)
-    await topup('address_to.csv', startNum, endId = startNum + topupCnt)
+    await topup('address_from.csv', startNum, endId = startNum + topupCnt - 1)
+    await topup('address_to.csv', startNum, endId = startNum + topupCnt - 1)
     process.exit()
 }
 
@@ -71,5 +73,5 @@ module.exports = topupAll;
 
 /*  run cmd:
     1. local:   node src/run --topup -i 50 -s 0 -c 1000
-    2. dev:     node src/run --topup -i 50 -e local -s 0 -c 1000 --ws ws://3.1.51.215:9944
+    2. dev:     node src/run --topup -i 50 -e local -s 0 -c 1000 --ws=ws://3.1.51.215:9944
 */

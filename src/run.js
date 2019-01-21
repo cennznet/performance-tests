@@ -2,7 +2,8 @@
 const callScn = require('./scenario')
 const {logRecord, sleep} = require('./api/general')
 const parameter = require('./parameter');
-const {subscribeBlockTx, unsubscribeBlockTx} = require('./api/transaction')
+const {subscribeBlockTx, unsubscribeBlockTx, apiPool} = require('./api/transaction')
+require('./api/transaction')
 require('./html_chart/server')
 const topupAll = require('../tools/topup')
 
@@ -12,8 +13,6 @@ async function callUserScenario(userId) {
     let responseTime = 0;
     let startTime = 0;
     let endTime = 0
-
-    
 
     startTime = new Date().getTime();
 
@@ -109,11 +108,11 @@ async function sample(intervalMs) {
         sample_list = [];
 
         // get block info
-        let _sampleMaxBlockTime = sampleMaxBlockTime
-        let _sampleMaxBlockTxCnt = sampleMaxBlockTxCnt
+        let _sampleMaxBlockTime = global.sampleMaxBlockTime
+        let _sampleMaxBlockTxCnt = global.sampleMaxBlockTxCnt
         // reset original value to collect next time frame
-        sampleMaxBlockTime = 0;
-        sampleMaxBlockTxCnt = 0;
+        global.sampleMaxBlockTime = 0; 
+        global.sampleMaxBlockTxCnt = 0;
 
 
         let sampleTps = 0.0;
@@ -177,20 +176,21 @@ async function sample(intervalMs) {
                    `${_sampleMaxBlockTime},${_sampleMaxBlockTxCnt}`)
 
         console.log('>>>>>>>>>>>>>>>>>>>>>')
+        console.log('current time = ', new Date().toLocaleString())
         // console.log('elapseTime = %d', elapseTime)
         // console.log(`users injected = ${currUserCount}`)
         // console.log('users = %d, OK = %d, KO = %d', currUserCount, trans_succ, trans_fail);
         // console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
         // console.log('tps_avg = %f, tps_max = %f', tps_avg.toFixed(2), tps_max.toFixed(2))
         // console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
-        console.log('-------------- sample:')
+        console.log('-------------- Sample:')
         console.log('sampleValidUserCnt = ', sampleValidUserCnt)
         console.log('sampleSuccTxCnt = ' + sampleSuccTxCnt)
         console.log('sampleAvgRespTime = ' + sampleAvgRespTime.toFixed(2))
         console.log('sampleTps = %f', sampleTps)
         console.log('sampleMaxBlockTime = ', _sampleMaxBlockTime)
         console.log('sampleMaxBlockTxCnt = ', _sampleMaxBlockTxCnt)
-        console.log('-------------- overall:')
+        console.log('-------------- Overall:')
         console.log('elapseTime = %d', elapseTime)
         console.log(`users injected = ${currUserCount}`)
         console.log('users = %d, OK = %d, KO = %d', currUserCount, trans_succ, trans_fail);
@@ -220,7 +220,7 @@ async function injectUser(totalUserCount) {
     let asyncList = []; // 正在进行的所有并发异步操作
     let usersInject = 0;
     monitor();
-    sample(2000);   // get informatin every interval
+    sample(2000);   // get sample informatin every interval
 
     // loop every second
     while (!bTestStop || (currUserCount < totalUserCount)) {
@@ -287,26 +287,31 @@ async function injectUser(totalUserCount) {
 }
 
 async function loadTestData(){
+    console.log('Load test addresses...')
     await parameter.loadTestAddress();
 }
 
 async function before() // before test run
 {
+    console.log('Start test monitor...')
+
     // create log file and add column title
     logRecord('time, user_count, tps, rpt, OK, KO, block_time, block_tx_cnt')
     
     // monitor the block
-    await subscribeBlockTx()
+    if ( !isRunOnce )
+        await subscribeBlockTx()
 
     // start result chart server
     // startHttpServer()
 }
 
-async function after()  // after test done
+function after()  // after test done
 {
-    unsubscribeBlockTx()
+    if ( !isRunOnce )
+        unsubscribeBlockTx()
     // await stopHttpServer()
-    console.log('nonceList = ',nonceList[0]);
+    // console.log('nonceList = ',nonceList[0]);
     process.exit();
 }
 
@@ -359,6 +364,7 @@ var totalRunTime = (stairUsers * 1000 / rampupRate + stairHoldTime) * (totalUser
 // ============ start test ============ //
 async function getArgs()
 {
+    console.log('Anaylyse input peremeters...')
     const argv = require('yargs').argv;
     console.log(argv)
 
@@ -367,8 +373,10 @@ async function getArgs()
         await topupAll()
         process.exit()
     }
-
-    argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
+    
+    // argv.ws ? global.wsIp = argv.ws : global.wsIp = 'ws://127.0.0.1:9944';
+    argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'ws://127.0.0.1:9944');
+    if ( argv.nodeSelect )          apiPool.setApiSelectMethod(argv.nodeSelect)
     if ( argv.user > 0 )            totalUserCount  = argv.user;
     if ( argv.startuser > 0 )       startUserCount  = argv.startuser;
     if ( argv.pacingtime > 0 )      pacingTime      = argv.pacingtime * 1000;
@@ -387,13 +395,12 @@ async function getArgs()
     if ( rampupRate > totalUserCount ) rampupRate = totalUserCount;
     if ( stairUsers > totalUserCount ) stairUsers = totalUserCount;
 
-    
 }
 
 async function runTest()
 {
     await getArgs();
-
+    // console.log('runTest...')
     if ( totalUserCount <= 0 ) {
         console.log('Bad command: Need user count.')
         process.exit(1)
@@ -411,15 +418,18 @@ async function runTest()
 
         resp_avg = Math.round(resp_total / trans_succ);
 
-        console.log('----- final statistics')
+        console.log('----- Final Statistics')
         console.log('test duration = %d(s)', (elapseTime/1000).toFixed(2))
         console.log(`users injected = ${currUserCount}`)
         console.log('OK = %d, KO = %d', trans_succ, trans_fail);
-        console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
-        console.log('tps_avg = %f, tps_max = %f', 
-                    (trans_succ * 1000/elapseTime).toFixed(2), 
-                    tps_max.toFixed(2))
-        console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
+        if ( !isRunOnce ){
+            console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
+            console.log('tps_avg = %f, tps_max = %f', 
+                        (trans_succ * 1000/elapseTime).toFixed(2), 
+                        tps_max.toFixed(2))
+            console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
+        }
+        console.log(`total tx in nodes: ${apiPool.getApiUsage()}`)
         console.log('-------------------')
 
         after();
@@ -428,7 +438,7 @@ async function runTest()
 }
 
 // command: 
-//      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944
+//      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944 --nodeSelect=random
 // once: 
 //      node src/run --ws=ws://127.0.0.1:9944 --once --user=10 
 //      node src/run --ws=ws://docker.for.mac.localhost:9944 --once --user=10 

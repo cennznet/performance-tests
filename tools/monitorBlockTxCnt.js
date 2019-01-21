@@ -49,6 +49,7 @@ async function main() {
 
         // get block interval
         let currTime = new Date().getTime();
+        console.log(`clock = ${new Date().toLocaleString()}`)
         console.log(`block time =  ${currTime - prevTime}`);
         prevTime = currTime;
 
@@ -87,5 +88,5 @@ main().catch(console.error);
 
 /*  run cmd:
     1. local:   node tools/monitorBlockTxCnt
-    2. remote:  node tools/monitorBlockTxCnt --ws ws://10.1.1.100:9944
+    2. remote:  node tools/monitorBlockTxCnt --ws ws://127.0.0.1:9944
 */

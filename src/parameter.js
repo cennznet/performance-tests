@@ -1,9 +1,9 @@
 
 
-global.addressListFrom = [];
+global.addressListFrom = [];    // [0] - seed, [1] - address
 global.addressListTo = [];
 
-// var addressListFrom = [];   // [0] - seed, [3] - address
+// var addressListFrom = [];   // [0] - seed, [1] - address
 // var addressListTo = [];
 
 async function loadAddrFile(filePath) 
