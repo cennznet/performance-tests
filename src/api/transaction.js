@@ -308,11 +308,8 @@ async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = f
             }).catch((error) => {
                 console.log('Error =', error);
                 // done();
-            });
-
-            
+            }); 
         });
-
     }
     catch (e) {
         message = e
