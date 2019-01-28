@@ -37,7 +37,7 @@ async function topup(fileName, startId = 0, endId = 10000) {
 
         for ( let j = 0; j< 60; j++ ){
             let retObj = await sendWithManualNonce( seed, toAddress, 100000);
-            // console.log('result =', retObj.bSucc)
+
             if ( retObj.bSucc ) break;
             else {
                 console.log(' --> retry')

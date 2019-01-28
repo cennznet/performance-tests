@@ -31,10 +31,12 @@ async function init() {
 }
 
 async function main() {
+
+    let totalTxCnt = 0;
+
     // Here we don't pass the (optional) provider, connecting directly to the default
     // node/port, i.e. `ws://127.0.0.1:9944`. Await for the isReady promise to ensure
     // the API has connected to the node and completed the initialisation process
-    // api = await ApiPromise.create();
     await init();
 
     prevTime = new Date().getTime();
@@ -50,6 +52,7 @@ async function main() {
         // get block interval
         let currTime = new Date().getTime();
         console.log(`clock = ${new Date().toLocaleString()}`)
+        console.log(`timestamp = ${new Date().getTime()}`)
         console.log(`block time =  ${currTime - prevTime}`);
         prevTime = currTime;
 
@@ -68,10 +71,14 @@ async function main() {
         const block = await api.rpc.chain.getBlock(...getBlockArgs)
         console.log('block hash: ', block.block.hash.toString())
         console.log('extrinsics length = ', block.block.extrinsics.length - 1)
+
+        totalTxCnt += block.block.extrinsics.length - 1;
+        console.log('Total processed tx count = ',totalTxCnt)
         
         // console.log(block.toJSON())  // block details
 
-        // for (const tx of block.block.extrinsics) {   // extrinsics details
+        // extrinsics details
+        // for (const tx of block.block.extrinsics) {   
         //     console.log(tx.hash.toString(), ':', tx.method.meta.name.toString(), tx.method.toJSON())
         // }
     });
@@ -80,7 +87,7 @@ async function main() {
 
     // Id for the subscription, we can cleanup and unsubscribe via
     // `api.chain.newHead.unsubscribe(subscriptionId)`
-    console.log(`subsciptionId: ${subscriptionId}`);
+    // console.log(`subsciptionId: ${subscriptionId}`);
 }
 
 getArgs()

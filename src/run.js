@@ -15,11 +15,11 @@ async function callUserScenario(userId) {
     let endTime = 0
 
     startTime = new Date().getTime();
-
     trans_total++;
-    txResult = await callScn(userId);
-    trans_done++;
 
+    txResult = await callScn(userId);
+    
+    trans_done++;
     endTime = new Date().getTime();
 
     responseTime = endTime - startTime;         // get tx response time
@@ -158,9 +158,12 @@ async function sample(intervalMs) {
         // tps_avg
         if (resp_avg < 0.000001)
             tps_avg = 0.0
-        else
-            tps_avg = trans_succ * 1000 / elapseTime
-        
+        else{
+            let totalTimeElapse = Date.now() - testStartTime
+            // tps_avg = trans_succ * 1000 / elapseTime
+            tps_avg = trans_succ * 1000 / totalTimeElapse
+        }
+            
         // block_maxTime
         if ( _sampleMaxBlockTime > block_maxTime )
             block_maxTime = _sampleMaxBlockTime;
@@ -177,12 +180,6 @@ async function sample(intervalMs) {
 
         console.log('>>>>>>>>>>>>>>>>>>>>>')
         console.log('current time = ', new Date().toLocaleString())
-        // console.log('elapseTime = %d', elapseTime)
-        // console.log(`users injected = ${currUserCount}`)
-        // console.log('users = %d, OK = %d, KO = %d', currUserCount, trans_succ, trans_fail);
-        // console.log('resp_min = %d, resp_avg = %d, resp_max = %d', resp_min, resp_avg, resp_max)
-        // console.log('tps_avg = %f, tps_max = %f', tps_avg.toFixed(2), tps_max.toFixed(2))
-        // console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
         console.log('-------------- Sample:')
         console.log('sampleValidUserCnt = ', sampleValidUserCnt)
         console.log('sampleSuccTxCnt = ' + sampleSuccTxCnt)
@@ -202,6 +199,7 @@ async function sample(intervalMs) {
 }
 
 async function monitor() {
+    console.log('Start test monitor...')
     elapseTime = 0;
     while (!bTestStop) {
         await sleep(1000)
@@ -217,10 +215,12 @@ async function monitor() {
 async function injectUser(totalUserCount) {
     console.log('============> start to inject users')
 
-    let asyncList = []; // 正在进行的所有并发异步操作
+    let asyncList = []; // all async actions
     let usersInject = 0;
-    monitor();
-    sample(2000);   // get sample informatin every interval
+    // monitor();
+    // sample(2000);   // get sample informatin every interval
+
+    testStartTime = Date.now()
 
     // loop every second
     while (!bTestStop || (currUserCount < totalUserCount)) {
@@ -283,6 +283,8 @@ async function injectUser(totalUserCount) {
             break;
     }
 
+    testEndTime = Date.now()
+
     return Promise.all(asyncList);  // waiting for all transactions finish
 }
 
@@ -293,15 +295,18 @@ async function loadTestData(){
 
 async function before() // before test run
 {
-    console.log('Start test monitor...')
+    monitor();
 
     // create log file and add column title
     logRecord('time, user_count, tps, rpt, OK, KO, block_time, block_tx_cnt')
     
-    // monitor the block
-    if ( !isRunOnce )
-        await subscribeBlockTx()
-
+    if ( !isRunOnce ){
+        // start sampler
+        sample(2000);
+        // monitor the block
+        await subscribeBlockTx();
+    }
+        
     // start result chart server
     // startHttpServer()
 }
@@ -316,7 +321,8 @@ function after()  // after test done
 }
 
 //  =========================== parameters
-var ws = []; // ws server ip list
+var testStartTime = 0;
+var testEndTime = 0;
 
 // transaction details
 var trans_total = 0;
@@ -414,11 +420,11 @@ async function runTest()
 
     injectUser(totalUserCount).then( response => {
     
-        console.log('finish')
+        console.log('Test finished')
 
         resp_avg = Math.round(resp_total / trans_succ);
 
-        console.log('----- Final Statistics')
+        console.log('----- Final Statistics -----')
         console.log('test duration = %d(s)', (elapseTime/1000).toFixed(2))
         console.log(`users injected = ${currUserCount}`)
         console.log('OK = %d, KO = %d', trans_succ, trans_fail);
@@ -429,8 +435,8 @@ async function runTest()
                         tps_max.toFixed(2))
             console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
         }
-        console.log(`total tx in nodes: ${apiPool.getApiUsage()}`)
-        console.log('-------------------')
+        console.log(`Total tx sent: ${apiPool.getApiUsage()}`)
+        console.log('----------------------------')
 
         after();
     });

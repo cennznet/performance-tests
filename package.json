@@ -4,10 +4,10 @@
         "ptest": "src/run"
     },
     "dependencies": {
-        "@polkadot/api": "^0.35.19",
-        "@polkadot/keyring": "^0.33.27",
-        "@polkadot/rpc-provider": "^0.35.19",
-        "@polkadot/util": "^0.33.27",
+        "@polkadot/api": "^0.40.23",
+        "@polkadot/keyring": "^0.33.36",
+        "@polkadot/rpc-provider": "^0.40.23",
+        "@polkadot/util": "^0.33.36",
         "rickshaw": "^1.6.6",
         "socket.io": "^2.2.0",
         "yargs": "^12.0.5"

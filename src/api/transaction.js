@@ -248,64 +248,79 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
     return { bSucc, message };
 }
 
-async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = true) {
+async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = false) {
 
     var bSucc = false;
     var message = "";
+    const txValidStatus = {'Ready':1,'Finalised':2,'Broadcast':4};
+    let api = null
 
-    let api = apiPool.getWsApi()
+    // console.log(`>>>>>>>>>>> ${fromSeed} in`)
 
     try {
+        api = apiPool.getWsApi()
+
         const _fromSeed = fromSeed.padEnd(32, ' ');
 
         // Create an instance of the keyring
         const keyring = new Keyring();
 
-        // Add Alice to our keyring (with the known seed for the account)
+        // Add seed to keyring (with the known seed for the account)
         const fromAccount = keyring.addFromSeed(stringToU8a(_fromSeed));
 
-        // Instantiate the API
-        // const provider = new WsProvider(config.nodeServerWsIp);
-        // const api = await ApiPromise.create(provider);
-
-        // Retrieve the nonce for Alice, to be used to sign the transaction
-        // await init();
+        // Get usable nounce
         const nonce = await noncePool.getNewNonce(api, fromSeed)
         // console.log('nonce = ',nonce.toString())
         message = nonce;
         // console.log('nonce = ', nonce.toString())
 
-        // Create a extrinsic, transferring 12345 units to Bob. We can also create,
-        // sign and send in one operation (as per the samples in the Api documentation),
-        // here we split it out for the sake of readability
+        // Create a extrinsic
         const transfer = api.tx.balances.transfer(toAddress, amount);
 
-        // Sign the transaction using our account
+        // Sign the transaction using account
         transfer.sign(fromAccount, nonce);
 
-        // Send the transaction and retrieve the bSuccing Hash
-        if ( isWaitResult ){
-            const hash = await transfer.send();
+        // Send transaction
+        bSucc = await new Promise(async (resolve,reject) => {
+            
+            await transfer.send((r) => {
+                // console.log(`${fromSeed} -- type = `, r.type)
 
-            if (hash.toString().length == 66){
-                message = 'hash = ' + hash;
-                bSucc = true;
-            }
-            else
-                bSucc = false;
-        }
-        else
-        {
-            transfer.send();
-            bSucc = true;
-        }
-        
+                // check status
+                if ( !(r.type in txValidStatus ) ){
+                    console.log(`WARN: Transaction status is '${r.type}'` )
+                    reject(false)
+                }
+                else{
+                    if (isWaitResult){
+                        // Only 'Finalised' can be successful
+                        if ( r.type == 'Finalised' ){
+                            // console.log('Finalised')
+                            // console.log('hash =', r.status.raw.toString())
+                            // resolve(r.status.raw.toString()); // get hash
+                            resolve(true)
+                        }
+                    }
+                    else{
+                        resolve(true);
+                    }
+                }
+            }).catch((error) => {
+                console.log('Error =', error);
+                // done();
+            });
+
+            
+        });
+
     }
     catch (e) {
         message = e
         bSucc = false
-        console.log('Error Msg = ',e)
+        console.log('Error Msg = ', e)
     }
+
+    // console.log(`<<<<<<<<<<<< ${fromSeed} out`)
 
     return { bSucc, message };
 }
@@ -429,7 +444,8 @@ module.exports.sendWithManualNonce = sendWithManualNonce;
 // test code
 async function test()
 {
-    console.log((await getNonce('perf_test_1000')).toString())
+    await apiPool.addWsIp('ws://127.0.0.1:9944')
+    await sendWithManualNonce('Alice', '5CxGSuTtvzEctvocjAGntoaS6n6jPQjQHp7hDG1gAuxGvbYJ', 1000)
    
     process.exit()
 }
