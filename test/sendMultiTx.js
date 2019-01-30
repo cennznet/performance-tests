@@ -1,23 +1,45 @@
 
-require('../src/api/transaction')
 
-// test code
-async function test() {
-    let txCnt = 250;
-    let toAddress = '5CxGSuTtvzEctvocjAGntoaS6n6jPQjQHp7hDG1gAuxGvbYJ'
+const {sendMulti, getAddrBal, apiPool} = require('../src/api/transaction')
 
-    let bal = await getAddrBal(toAddress);
 
-    let nextBal = parseInt(bal.toString())  + txCnt;
-    console.log(`bal = ${bal} + ${txCnt} = ${nextBal}`);
+let fromSeed = null;
+let toAddr = null;
+let amount = 0;
+let txNum = 0;
 
-    let t1 = new Date().getTime()
-    await sendMulti('perf_test_1000', toAddress, 1, txCnt);
-    let t = new Date().getTime() - t1
-
-    console.log(`Time for tx = ${(t)/1000}`);
-
-    // await process.exit()
+async function getArgs()
+{
+    const argv = require('yargs').argv;
+    
+    argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp('ws://127.0.0.1:9944');
+    fromSeed = argv.f
+    toAddr = argv.t
+    argv.a ? amount = parseInt(argv.a) : amount = 1;    // transfer amount
+    argv.n ? txNum = parseInt(argv.n) : txNum = 1;      // total number of tx
 }
 
-test()
+// test code
+async function run() {
+    await getArgs()
+
+    let bal = await getAddrBal(toAddr);
+
+    let nextBal = parseInt(bal.toString())  + txNum * amount;
+    console.log(`bal = ${bal} + ${txNum} = ${nextBal}`);
+
+    let t1 = new Date().getTime()
+    await sendMulti(fromSeed, toAddr, amount, txNum);
+    let t = new Date().getTime() - t1
+
+    console.log(`Time for tx = ${(t)/1000}s`);
+
+    process.exit()
+}
+
+run()
+
+/*  run cmd:
+    1. local:   node test/sendMultiTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 1000 -n 10 --ws ws://127.0.0.1:9944
+    2. dev:     node test/sendMultiTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 1000 -n 10 --ws ws://3.1.51.215:9944
+*/

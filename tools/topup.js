@@ -7,6 +7,7 @@ var testEnv = '';
 var fromSeedLst = [];
 var topupCnt = 0;
 var startNum = 0;
+var amount = 0;
 
 async function getArgs()
 {
@@ -17,10 +18,11 @@ async function getArgs()
     argv.e ? testEnv = argv.e : testEnv = 'local'   // test environment
     argv.c ? topupCnt = argv.c : topupCnt = 10000   // total address count to topup, default is 10k
     argv.s ? startNum = argv.s : startNum = 0;
+    argv.a ? amount = argv.a : amount = 10000;      // top-up amount
 }
 
 // test code
-async function topup(fileName, startId = 0, endId = 10000) {
+async function topup(fileName, startId = 0, endId = 10000, amt = amount) {
     console.log('Start to top up...')
 
     let addrLst = await loadAddrFile(__dirname + '/../data/' + fileName)
@@ -36,7 +38,7 @@ async function topup(fileName, startId = 0, endId = 10000) {
         console.log(`tx = ${i}, ${seed} -> ${toAddress}`)
 
         for ( let j = 0; j< 60; j++ ){
-            let retObj = await sendWithManualNonce( seed, toAddress, 100000);
+            let retObj = await sendWithManualNonce( seed, toAddress, amt);
 
             if ( retObj.bSucc ) break;
             else {
@@ -58,13 +60,16 @@ async function topupAll()
         // dev
         fromSeedLst = ['Andrea','Brooke','Courtney','Drew','Emily','Frank'] 
     }
+    else if ( testEnv == 'testnet' ){
+        fromSeedLst = ['Bette']
+    }
     else{
         // local machine
         fromSeedLst = ['Alice','Bob','Eve','Dave']  
     }
 
-    await topup('address_from.csv', startNum, endId = startNum + topupCnt - 1)
-    await topup('address_to.csv', startNum, endId = startNum + topupCnt - 1)
+    await topup('address_from.csv', startNum, endId = startNum + topupCnt - 1, amount)
+    await topup('address_to.csv', startNum, endId = startNum + topupCnt - 1, amount)
     process.exit()
 }
 

@@ -10,7 +10,6 @@ async function getArgs()
     fromSeed = argv.f
     toAddr = argv.t
     argv.a ? amount = parseInt(argv.a) : amount = 1000;
-    console.log('toAddr1 = ' + toAddr)
 }
 
 // test code
@@ -46,4 +45,4 @@ run()
 
 
 // run code:
-//      node test/sendOneTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG --ws ws://127.0.0.1:9944
+//      node test/sendOneTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 1000 --ws ws://127.0.0.1:9944

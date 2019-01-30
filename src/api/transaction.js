@@ -252,7 +252,7 @@ async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = f
 
     var bSucc = false;
     var message = "";
-    const txValidStatus = {'Ready':1,'Finalised':2,'Broadcast':4};
+    const txValidStatus = {'Future':0,'Ready':1,'Finalised':2,'Broadcast':4};
     let api = null
 
     // console.log(`>>>>>>>>>>> ${fromSeed} in`)
