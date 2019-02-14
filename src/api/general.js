@@ -31,10 +31,9 @@ if (!fs.existsSync(resultDir)){
 
 
 
-module.exports = {
-    logRecord,
-    sleep,
-}
+module.exports.logRecord = logRecord
+module.exports.sleep = sleep
+
 
 
 // logRecord('hello')
