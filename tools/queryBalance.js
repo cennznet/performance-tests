@@ -1,19 +1,19 @@
 const { ApiPromise } = require('@polkadot/api');
-const { Api } = require('cennznet-api');
+const { Api } = require('@cennznet/api');
 const { WsProvider } = require('@polkadot/rpc-provider');
-const { stringToU8a, u8aToHex } = require('@polkadot/util');
+const { stringToU8a, u8aToHex } = require('@cennznet/util');
 const { Address, u32, u128 } = require('@polkadot/types') ;
 const { AssetId } = require('cennznet-runtime-types');
-const { xxhashAsHex } = require('@polkadot/util-crypto');
-const { Keyring, decodeAddress } = require('@polkadot/keyring');
+const { xxhashAsHex } = require('@cennznet/util-crypto');
+const { Keyring, decodeAddress } = require('@cennznet/util');
 
-const typeRegistry = require('@polkadot/types/codec/typeRegistry');
-typeRegistry.default.register({
-    AssetId: 'u32',
-    Topic: 'u256', 
-    Value: 'u256',
-    AssetOptions: { total_supply: 'Balance' }
-});
+// const typeRegistry = require('@polkadot/types/codec/typeRegistry');
+// typeRegistry.default.register({
+//     AssetId: 'u32',
+//     Topic: 'u256', 
+//     Value: 'u256',
+//     AssetOptions: { total_supply: 'Balance' }
+// });
 
 // const nodeServerWsIp = 'ws://cennznet-node-1.centrality.me:9944';
 var nodeServerWsIp = "";

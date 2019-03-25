@@ -1,6 +1,6 @@
 # Substrate performance test script
 
-Performance test script for the blockchain node based on Substrate
+Performance test script for the blockchain node based on Substrate.
 
 ## Before Test
 
@@ -14,6 +14,10 @@ Go to the repo folder and install.
 ```bash
 npm install
 ```
+
+__Launch the Cennznet node network__
+
+Start the cennznet nodes that you want to test.
 
 __Topup test addresses__
 ```bash
