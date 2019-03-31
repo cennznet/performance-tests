@@ -446,6 +446,6 @@ async function runTest()
 // command: 
 //      node src/run --user=13 --startuser=10 --pacingtime=1 --rampuprate=1 --stairuser=5 --stairholdtime=60 --finalholdtime=600 --ws=ws://127.0.0.1:9944 --nodeSelect=random
 // once: 
-//      node src/run --ws=ws://127.0.0.1:9944 --once --user=10 
+//      node src/run --ws=ws://127.0.0.1:9944 --once --user=10
 //      node src/run --ws=ws://docker.for.mac.localhost:9944 --once --user=10 
 runTest();

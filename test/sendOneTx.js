@@ -1,5 +1,5 @@
 // require('../src/api/transaction')
-const {sendWaitConfirm, getAddrBal, apiPool} = require('../src/api/transaction')
+const {sendWithManualNonce, getAddrBal, apiPool} = require('../src/api/transaction')
 
 
 async function getArgs()
@@ -10,7 +10,7 @@ async function getArgs()
     argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp('ws://127.0.0.1:9944');
     fromSeed = argv.f
     toAddr = argv.t
-    argv.a ? amount = parseInt(argv.a) : amount = 1000;
+    argv.a ? amount = parseInt(argv.a) : amount = 10000;
 }
 
 // test code
@@ -21,13 +21,18 @@ async function send(fromSeed, toAddr, amount) {
     
 
     let bal = await getAddrBal(toAddress);
-    console.log('bal before = ', bal.toString())
+    console.log('toAddress bal before = ', bal.toString())
+    bal = await getAddrBal(fromSeed);
+    console.log('fromSeed bal before = ', bal.toString())
 
-    let result = await sendWaitConfirm(fromSeed, toAddress, amount);
-    console.log('result = ', result)
+
+    let result = await sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = true);
+    // console.log('result = ', result)
 
     bal = await getAddrBal(toAddress);
-    console.log('bal after = ', bal.toString())
+    console.log('toAddress bal after = ', bal.toString())
+    bal = await getAddrBal(fromSeed);
+    console.log('fromSeed bal after = ', bal.toString())
 
     process.exit()
 }
@@ -46,4 +51,4 @@ run()
 
 
 // run code:
-//      node test/sendOneTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 1000 --ws ws://127.0.0.1:9944
+//      node test/sendOneTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 10000 --ws ws://127.0.0.1:9944

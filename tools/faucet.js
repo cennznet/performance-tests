@@ -1,4 +1,4 @@
-const {transfer, apiPool} = require('../src/api/transaction')
+const {sendWithManualNonce, apiPool} = require('../src/api/transaction')
 const {loadAddrFile} = require('../src/parameter');
 // const {sleep} = require('../src/api/general')
 
@@ -38,7 +38,13 @@ async function faucet(fileName) {
         let amt = Math.round( Math.random() * 1000 + 1000)
 
         console.log(`${seed} -> ${toAddress} with ${amt}`)
-        await transfer( seed, toAddress, amt, 0)
+        try{
+            await sendWithManualNonce( seed, toAddress, amt, 0)
+        }
+        catch(e){
+           console.log('error =', e)
+        }
+        
 
         await sleepMs(1000)
 
@@ -70,5 +76,5 @@ async function run()
 run()
 
 /*  run cmd:
-    node tools/faucet -i 50 -s 0 -c 1000 --ws=ws://3.1.51.215:9944
+    node tools/faucet --ws=wss://cennznet-node-0.centrality.cloud:9944
 */

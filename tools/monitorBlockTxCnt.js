@@ -1,19 +1,19 @@
 
 
 // Import the API
-const { ApiPromise } = require('@polkadot/api');
-const { WsProvider } = require('@polkadot/rpc-provider');
+const { Api } = require('@cennznet/api');
+const { WsProvider } = require('@cennznet/api/polkadot');
 // const config = require('../src/config.js');
 
-const typeRegistry = require('@polkadot/types/codec/typeRegistry');
-typeRegistry.default.register({
-    AssetId: 'u32',
-    Topic: 'u256', 
-    Value: 'u256',
-    AssetOptions: { total_supply: 'Balance' }
-});
+// const typeRegistry = require('@polkadot/types/codec/typeRegistry');
+// typeRegistry.default.register({
+//     AssetId: 'u32',
+//     Topic: 'u256', 
+//     Value: 'u256',
+//     AssetOptions: { total_supply: 'Balance' }
+// });
 
-var api = null;//await ApiPromise.create();
+var api = null;//await Api.create();
 
 // const nodeServerWsIp = 'ws://cennznet-node-1.centrality.me:9944';
 // const nodeServerWsIp = 'ws://127.0.0.1:9944';
@@ -29,7 +29,7 @@ function getArgs()
 async function init() {
     if (null == api) {
         let provider = new WsProvider(nodeServerWsIp);
-        api = await ApiPromise.create(provider);
+        api = await Api.create(provider);
     }
 }
 
