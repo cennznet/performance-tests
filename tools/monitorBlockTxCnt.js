@@ -98,5 +98,5 @@ main().catch(console.error);
 
 /*  run cmd:
     1. local:   node tools/monitorBlockTxCnt
-    2. remote:  node tools/monitorBlockTxCnt --ws ws://127.0.0.1:9944
+    2. remote:  node tools/monitorBlockTxCnt --ws wss://cennznet-node-0.centrality.cloud:9944
 */

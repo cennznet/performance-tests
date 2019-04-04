@@ -18,7 +18,7 @@ async function _sendTx(userId)
     let seedFrom = addressListFrom[userId][0];
     let addrTo = addressListTo[userId][1];
 
-    returnObj = await sendWithManualNonce( seedFrom, addrTo, 1);
+    returnObj = await sendWithManualNonce( seedFrom, addrTo, 1000);
 
     return returnObj;
 }
