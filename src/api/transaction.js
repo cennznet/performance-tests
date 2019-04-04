@@ -19,9 +19,9 @@ const NodeSelectMethod = {
     RANDOM:     'random',
 }
 
-const CURRENCY = {
-    STAKE:  0,
-    SPEND:  10,
+global.CURRENCY = {
+    STAKE:  0, //16000,
+    SPEND:  10, //16001,
 }
 
 // Manage multiple ws connections
@@ -200,12 +200,6 @@ async function getAddrBal( address, assetId = CURRENCY.SPEND ) {    // assetId: 
     return balance.toString();
 }
 
-async function getAddrBal2(address) {
-    let api = apiPool.getWsApiById(0)
-    let bal = await api.query.balances.freeBalance(address);
-    return bal
-}
-
 async function setApiSigner(api, signerSeed){ // signerSeed - string, like 'Alice'
     // create wallet
     const wallet = new Wallet();
@@ -281,83 +275,6 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
     catch (e) {
         message = e
     }
-
-    return { bSucc, message };
-}
-
-async function sendWithManualNonce_old(fromSeed, toAddress, amount, isWaitResult = false) {
-
-    var bSucc = false;
-    var message = "";
-    const txValidStatus = {'Future':0,'Ready':1,'Finalised':2,'Broadcast':4};
-    let api = null
-    const assetId = CURRENCY.SPEND
-
-    // console.log(`>>>>>>>>>>> ${fromSeed} in`)
-
-    try {
-        api = apiPool.getWsApi()
-
-        await setApiSigner(api, fromSeed)
-
-        const _fromSeed = fromSeed.padEnd(32, ' ');
-
-        // Create an instance of the keyring
-        const keyring = new Keyring();
-
-        // Add seed to keyring (with the known seed for the account)
-        const fromAccount = keyring.addFromSeed(stringToU8a(_fromSeed));
-
-        // Get usable nounce
-        const nonce = await noncePool.getNewNonce(api, fromSeed)
-        // console.log('nonce = ',nonce.toString())
-        message = nonce;
-        console.log('nonce = ', nonce.toString())
-
-        // Create a extrinsic
-        const transfer = api.tx.genericAsset.transfer(assetId, toAddress, amount)
-
-        // Sign the transaction using account
-        transfer.sign(fromAccount, nonce);
-
-        // Send transaction
-        bSucc = await new Promise(async (resolve,reject) => {
-            
-            await transfer.send((r) => {
-                // console.log(`${fromSeed} -- type = `, r.type)
-
-                // check status
-                if ( !(r.type in txValidStatus ) ){
-                    console.log(`WARN: Transaction status is '${r.type}'`)
-                    reject(false)
-                }
-                else{
-                    if (isWaitResult){
-                        // Only 'Finalised' can be successful
-                        if ( r.type == 'Finalised' ){
-                            // console.log('Finalised')
-                            // console.log('hash =', r.status.raw.toString())
-                            // resolve(r.status.raw.toString()); // get hash
-                            resolve(true)
-                        }
-                    }
-                    else{
-                        resolve(true);
-                    }
-                }
-            }).catch((error) => {
-                console.log('Error =', error);
-                // done();
-            }); 
-        });
-    }
-    catch (e) {
-        message = e
-        bSucc = false
-        console.log('Error Msg = ', e)
-    }
-
-    // console.log(`<<<<<<<<<<<< ${fromSeed} out`)
 
     return { bSucc, message };
 }
