@@ -17,13 +17,6 @@ const { Api } = require('@cennznet/api');
 const { WsProvider } = require('@cennznet/api/polkadot');
 // const config = require('../src/config.js');
 
-// const typeRegistry = require('@polkadot/types/codec/typeRegistry');
-// typeRegistry.default.register({
-//     AssetId: 'u32',
-//     Topic: 'u256', 
-//     Value: 'u256',
-//     AssetOptions: { total_supply: 'Balance' }
-// });
 
 var api = null;//await Api.create();
 

@@ -19,14 +19,6 @@ const { Keyring } = require('@cennznet/util');
 const { stringToU8a } = require('@cennznet/util');
 
 
-// const typeRegistry = require('@polkadot/types/codec/typeRegistry');
-// typeRegistry.default.register({
-//     AssetId: 'u32',
-//     Topic: 'u256', 
-//     Value: 'u256',
-//     AssetOptions: { total_supply: 'Balance' }
-// });
-
 // const nodeServerWsIp = 'ws://cennznet-node-1.centrality.me:9944';
 var nodeServerWsIp = "";
 var hash = "";
