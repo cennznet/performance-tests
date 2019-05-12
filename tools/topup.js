@@ -1,4 +1,19 @@
-const {sendWithManualNonce, apiPool} = require('../src/api/transaction')
+// Copyright 2019 Centrality Investments Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+const {transferWithManualNonce, apiPool} = require('../src/api/transaction')
 const {loadAddrFile} = require('../src/parameter');
 const {sleep} = require('../src/api/general')
 
@@ -32,13 +47,13 @@ async function topup(fileName, startId = 0, endId = 10000, amt = amount) {
     for ( let i = startId; i < addrLst.length && i <= endId ; i++ )
     {
         let seedId = i % fromSeedLst.length
-        let seed = fromSeedLst[seedId]
-        let toAddress = addrLst[i][1]
+        let seedFrom = fromSeedLst[seedId]
+        let seedTo = addrLst[i][0]
 
-        console.log(`tx = ${i}, ${seed} -> ${toAddress}`)
+        console.log(`tx = ${i}, ${seedFrom} -> ${seedTo}`)
 
         for ( let j = 0; j< 60; j++ ){
-            let retObj = await sendWithManualNonce( seed, toAddress, amt);
+            let retObj = await transferWithManualNonce( seedFrom, seedTo, amt);
 
             if ( retObj.bSucc ) break;
             else {
@@ -48,8 +63,6 @@ async function topup(fileName, startId = 0, endId = 10000, amt = amount) {
         }
         await sleep(interval)
     }
-
-    // process.exit()
 }
 
 

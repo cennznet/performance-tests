@@ -1,5 +1,20 @@
+// Copyright 2019 Centrality Investments Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 // require('../src/api/transaction')
-const {sendWithManualNonce, getAddrBal, apiPool} = require('../src/api/transaction')
+const {transferWithManualNonce, getAddrBal, apiPool} = require('../src/api/transaction')
 
 
 async function getArgs()
@@ -26,7 +41,7 @@ async function send(fromSeed, toAddr, amount) {
     console.log('fromSeed bal before = ', bal.toString())
 
 
-    let result = await sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = true);
+    let result = await transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult = true);
     // console.log('result = ', result)
 
     bal = await getAddrBal(toAddress);
@@ -49,6 +64,10 @@ var amount = ""
 
 run()
 
-
-// run code:
-//      node test/sendOneTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 10000 --ws ws://127.0.0.1:9944
+/**
+ * run command:
+ *      - local:  node test/sendOneTx -f Alice -t James -a 10000
+ *      - Kauri:  node test/sendOneTx -f Andrea -t James -a 10000 --ws wss://cennznet-node-0.centrality.me:9944
+ */
+// 
+//      

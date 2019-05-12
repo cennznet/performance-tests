@@ -1,9 +1,23 @@
+// Copyright 2019 Centrality Investments Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 
 const { stringToU8a, hexToBn , Keyring } = require('@cennznet/util');
 const { SimpleKeyring, Wallet } = require('@cennznet/wallet')
 const { Api } = require('@cennznet/api')
 const { WsProvider } = require('@cennznet/api/polkadot')
-const { GenericAsset}  = require('@cennznet/generic-asset')
+const { GenericAsset}  = require('@cennznet/crml-generic-asset')
 
 // global.wsIp = []; // ws ip, TODO: will be an array
 
@@ -20,8 +34,8 @@ const NodeSelectMethod = {
 }
 
 global.CURRENCY = {
-    STAKE:  0, //16000,
-    SPEND:  10, //16001,
+    STAKE:  16000,
+    SPEND:  16001,
 }
 
 // Manage multiple ws connections
@@ -151,17 +165,9 @@ class NoncePool{
         let nonce = null
 
         try {
-            const _fromSeed = fromSeed.padEnd(32, ' ');
-
-            // Create an instance of the keyring
-            const keyring = new Keyring();
-
-            // Add Alice to our keyring (with the known seed for the account)
-            const fromAccount = keyring.addFromSeed(stringToU8a(_fromSeed));
-
+            const address = getAddressFromSeed(fromSeed)
             // get current nonce
-            nonce = await api.query.system.accountNonce(fromAccount.address())
-
+            nonce = await api.query.system.accountNonce(address)
         }
         catch (e) {
             console.log(`Error = ${e}`)
@@ -172,40 +178,44 @@ class NoncePool{
 }
 
 
+function getAccount(seed){  // Note: Should call 'await cryptoWaitReady()' first if api is not created.
+    const seedUri = '//' + seed
+    const simpleKeyring = new SimpleKeyring(); 
+    const account = simpleKeyring.addFromUri( seedUri); 
+    return account
+}
+
 function getAddressFromSeed(seed){
-    let _address = null;
+    let address = null;
 
     // Operate different input: seed or address
     if ( seed.length == 48 ) {   // address
-        _address = seed
+        address = seed
     }
     else{   // seed
-        const _seed = seed.padEnd(32, ' ');
-        const keyring = new Keyring();
-        const fromAccount = keyring.addFromSeed(stringToU8a(_seed));
-        _address = fromAccount.address();
+        address = getAccount(seed).address()
     }
 
-    return _address
+    return address
 }
 
-
-async function getAddrBal( address, assetId = CURRENCY.SPEND ) {    // assetId: 0 - CENNZ, 10 - SPEND
+async function getAddrBal( seedOrAddress, assetId = CURRENCY.SPEND ) {    // assetId: 0 - CENNZ, 10 - SPEND
 
     // get balance via GenericAsset
     const api = apiPool.getWsApiById(0)
     const ga = await GenericAsset.create(api);
-    const balance = await ga.getFreeBalance(assetId, getAddressFromSeed(address))
+    const balance = await ga.getFreeBalance(assetId, getAddressFromSeed(seedOrAddress))
 
     return balance.toString();
 }
 
 async function setApiSigner(api, signerSeed){ // signerSeed - string, like 'Alice'
     // create wallet
-    const wallet = new Wallet();
-    await wallet.createNewVault('a passphrase');
-    const keyring = new SimpleKeyring();
-    await keyring.addFromSeed(stringToU8a(signerSeed.padEnd(32, ' ')));
+    const wallet = new Wallet(); 
+    await wallet.createNewVault('a passphrase'); 
+    const keyring = new SimpleKeyring(); 
+    const seedUri = '//' + signerSeed
+    keyring.addFromUri(seedUri)
     await wallet.addKeyring(keyring);
 
     // set wallet as signer of api
@@ -279,7 +289,7 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
     return { bSucc, message };
 }
 
-async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = false) {
+async function transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult = false) {
 
     var bSucc = false;
     var message = "";
@@ -288,50 +298,42 @@ async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = f
     const assetId = CURRENCY.SPEND
 
     try {
-        api = apiPool.getWsApi()
+        api = await apiPool.getWsApi()
 
         await setApiSigner(api, fromSeed)
+        const ga = await GenericAsset.create(api)
 
         const fromAccount = getAccount(fromSeed)
+
+        // convert to address if input is a seed
+        const _toAddress = await getAddressFromSeed(toAddress)
 
         // Get usable nounce
         const nonce = await noncePool.getNewNonce(api, fromSeed)
         // console.log('nonce = ',nonce.toString())
-        message = nonce;
+        message = nonce.toString();
 
         // Create a extrinsic
-        const transfer = api.tx.genericAsset.transfer(assetId, toAddress, amount)
-
+        const transfer = ga.transfer(assetId, _toAddress, amount)
         // Sign the transaction using account
-        // transfer.sign(fromAccount, nonce);
+        transfer.sign(fromAccount, nonce);
 
         // Send transaction
         bSucc = await new Promise(async (resolve,reject) => {
             
-            const signedTx = transfer.sign(fromAccount, nonce);
+            // const signedTx = transfer.sign(fromAccount, nonce);
             
             await transfer.send((r) => {
                 // console.log(`${fromSeed} -- type = `, r.type)
+                if (isWaitResult != true){
+                    resolve(true); 
+                }
 
                 // check status
-                if ( !(r.type in txValidStatus ) ){
-                    console.log(`WARN: Transaction status is '${r.type}'`)
-                    reject(false)
+                if ( r.status.isFinalized == true && r.events !== undefined ){
+                    resolve(true);
                 }
-                else{
-                    if (isWaitResult){
-                        // Only 'Finalised' can be successful
-                        if ( r.type == 'Finalised' ){
-                            // console.log('Finalised')
-                            // console.log('hash =', r.status.raw.toString())
-                            // resolve(r.status.raw.toString()); // get hash
-                            resolve(true)
-                        }
-                    }
-                    else{
-                        resolve(true);
-                    }
-                }
+
             }).catch((error) => {
                 console.log('Error =', error);
                 // done();
@@ -347,13 +349,6 @@ async function sendWithManualNonce(fromSeed, toAddress, amount, isWaitResult = f
     // console.log(`<<<<<<<<<<<< ${fromSeed} out`)
 
     return { bSucc, message };
-}
-
-function getAccount(seed){
-    const _seed = seed.padEnd(32, ' ');
-    const keyring = new Keyring();
-    const account = keyring.addFromSeed(stringToU8a(_seed));
-    return account
 }
 
 async function subscribeBlockTx() {
@@ -463,7 +458,9 @@ async function queryFreeBalance( address, assetId = CURRENCY.SPEND) {    // asse
     // get balance via GenericAsset
     const api = await apiPool.getWsApi()
     const ga = await GenericAsset.create(api);
-    const balance = await ga.getFreeBalance(assetId, getAddressFromSeed(address))
+    const _address = getAddressFromSeed(address)
+    console.log('address = ', _address)
+    const balance = await ga.getFreeBalance(assetId, _address)
 
     return balance.toString();
 }
@@ -479,8 +476,9 @@ module.exports.getAddrBal = getAddrBal;
 module.exports.subscribeBlockTx = subscribeBlockTx;
 module.exports.unsubscribeBlockTx = unsubscribeBlockTx;
 module.exports.sendMulti = sendMulti;
-module.exports.sendWithManualNonce = sendWithManualNonce;
+module.exports.transferWithManualNonce = transferWithManualNonce;
 module.exports.queryFreeBalance = queryFreeBalance;
+module.exports.setApiSigner = setApiSigner
 
 
 // test code
