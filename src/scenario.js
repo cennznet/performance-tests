@@ -13,17 +13,16 @@
 // limitations under the License.
 
 
-const {transferWithManualNonce} = require('./api/transaction')
+const {transferWithManualNonce} = require('./api/transactions')
 const {loadTestAddress} = require('./parameter');
+const smc = require('./api/smartContract')
 
 
-module.exports.callScn = async function(userId)  // each user allocated a distinct seed
-{
+module.exports.callScn = async function(userId) { // each user allocated a distinct seed
     return await _sendTx(userId);
 }
 
-async function _sendTx(userId)
-{
+async function _sendTx(userId){
     let returnObj = [];
     let seedFrom = addressListFrom[userId][0];
     let seedTo = addressListTo[userId][0];
@@ -33,66 +32,13 @@ async function _sendTx(userId)
     return returnObj;
 }
 
-/*
-async function _sendTxAndWait(userId)
-{
-    let returnObj = [];
-    let seedFrom = addressListFrom[userId][0];
-    let addrTo = addressListTo[userId][3];
 
-    // let prevBal = await _getBal(addrTo);
+async function _playSmartContract(userId){
+    const contractFilePath = __dirname + '/../files/spin2win.wasm'
+    // const contractHash = '0xef55f2f51f83c5dea3dd0ba33f654d00ca3f62e93929e4c0225e396c310fd1b3'
+    const contractHash = '0xf7920e0110a280214c3f490f96cb1894761ac8fdbb7ebbc44cc9d8c46a78bbd4'
+    const issuerSeed = addressListFrom[userId][0]
+    const gasLimit = 10000
+    const endowment = 1001
 
-    returnObj = await send( seedFrom, addrTo, 1);
-
-    // if send failed, return the result
-    if (returnObj.bSucc == false)
-        return returnObj
-
-    // reset the result
-    returnObj.bSucc = false;
-
-    // wait for balance change
-    let prevBal = await _getBal(addrTo);
-    let waitTime = 60;
-    for ( let i =0; i < waitTime; i++ )
-    {   
-        await sleep(1000);
-
-        let currBal = await _getBal(addrTo);
-        if ( currBal - prevBal < 0.00001 )  // currBal = prevBal
-            continue;
-        else    // balance changed
-        {
-            returnObj.bSucc = true;
-            break; 
-        }
-    }
-
-    if (returnObj.bSucc == false)
-        returnObj.message = `Balance did not change in ${waitTime} seconds.`
-    // console.log(`result = ${returnObj.result}`);
-
-    return returnObj;
 }
-
-async function _getBal(address)
-{
-    return await getAddrBal(address)
-}
-*/
-
-// test code
-async function test()
-{
-    await loadTestAddress();
-
-    for ( let i=0; i < 100; i++ )
-        await callScn(i);
-    
-    console.log('=== done ===')
-    process.exit()
-}
-
-
-// test()
-

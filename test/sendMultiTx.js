@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const {sendMulti, getAddrBal, apiPool} = require('../src/api/transaction')
+const {sendMulti, getAddrBal, apiPool} = require('../src/api/transactions')
 
 
 let fromSeed = null;

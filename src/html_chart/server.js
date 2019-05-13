@@ -16,7 +16,7 @@ global.startHttpServer = startHttpServer;
 global.stopHttpServer = stopHttpServer;
 
 var app = require('http').createServer(handler),
-    io = require('./node_modules/socket.io').listen(app),
+    io = require('socket.io').listen(app),
     fs = require('fs');
 //当前在线人数
 var onlineCount = 0;

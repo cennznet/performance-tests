@@ -15,7 +15,7 @@
 
 const { Api } = require('@cennznet/api');
 const { WsProvider } = require('@cennznet/api/polkadot');
-const tx = require('../src/api/transaction')
+const tx = require('../src/api/transactions')
 const { GenericAsset}  = require('@cennznet/crml-generic-asset')
 
 

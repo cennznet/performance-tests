@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-const {transferWithManualNonce, apiPool} = require('../src/api/transaction')
+const {transferWithManualNonce, apiPool} = require('../src/api/transactions')
 const {loadAddrFile} = require('../src/parameter');
 const {sleep} = require('../src/api/general')
 

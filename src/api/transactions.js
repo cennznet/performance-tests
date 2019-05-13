@@ -19,7 +19,7 @@ const { Api } = require('@cennznet/api')
 const { WsProvider } = require('@cennznet/api/polkadot')
 const { GenericAsset}  = require('@cennznet/crml-generic-asset')
 
-// global.wsIp = []; // ws ip, TODO: will be an array
+
 
 global.sampleMaxBlockTime = 0;
 global.sampleMaxBlockTxCnt = 0;
@@ -351,6 +351,70 @@ async function transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult
     return { bSucc, message };
 }
 
+async function signAndSendTx(api, transaction, seedOrAccount, nonce_in = -1, waitFinalised = true){
+    const txResult = new TxResult()
+
+    let account = null
+    let nonce = nonce_in
+
+    // convert seed to account. Seed is String, account is Object
+    typeof(seedOrAccount) == 'string' ? account = getAccount(seedOrAccount) : account = seedOrAccount
+    
+    // if no nonce value, then get it
+    if (nonce_in < 0){
+        nonce = await noncePool.getNewNonce(api, fromSeed);
+    }
+
+    // Send and wait nonce changed
+    await new Promise(async (resolve,reject) => {
+        // get tx hash and length (byte)
+        const signedTx = transaction.sign(account, nonce)
+        txResult.txHash = signedTx.hash.toString()
+        txResult.byteLength = signedTx.encodedLength
+        // send tx
+        await transaction.send( async (r) => {
+            // if donot wait, return straighaway
+            if (waitFinalised != true){
+                resolve(true); 
+            }
+
+            if ( r.status.isFinalized == true && r.events !== undefined ){
+                // get block hash
+                txResult.blockHash = r.status.raw.toString()
+                // get extrinsic id
+                txResult.extrinsicIndex = r.events[0].phase.asApplyExtrinsic.toString()
+                // set tx result symbol
+                txResult.bSucc = true
+                // get all events
+                txResult.events = r.events
+                // get tx fee
+                txResult.txFee = await queryTxFee(txResult.blockHash, txResult.extrinsicIndex)
+
+                // check if the extrinsic succeeded
+                r.events.forEach(({ phase, event: { data, method, section } }) => {
+                    if ( method == 'ExtrinsicFailed'){
+                        txResult.bSucc = false
+                        txResult.message = `Transaction failed: ${section}.${method}`
+                    }
+                });
+
+                resolve(true); 
+            }
+            else if (r.type == 'Invalid'){
+                txResult.bSucc = false
+                txResult.events = r.events
+                txResult.message = `Transaction type = ${r.type}`
+                resolve(true);
+            }
+        }).catch((error) => {
+            reject(error);
+        });
+    });
+
+    return txResult
+}
+
+
 async function subscribeBlockTx() {
 
     // get first api
@@ -479,15 +543,5 @@ module.exports.sendMulti = sendMulti;
 module.exports.transferWithManualNonce = transferWithManualNonce;
 module.exports.queryFreeBalance = queryFreeBalance;
 module.exports.setApiSigner = setApiSigner
+module.exports.signAndSendTx = signAndSendTx
 
-
-// test code
-async function test()
-{
-    await apiPool.addWsIp('ws://127.0.0.1:9944')
-    // await transfer('Alice', '5CxGSuTtvzEctvocjAGntoaS6n6jPQjQHp7hDG1gAuxGvbYJ', 1000, 0)
-   
-    process.exit()
-}
-
-// test()

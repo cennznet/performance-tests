@@ -14,7 +14,7 @@
 
 
 
-const tx = require('../src/api/transaction');
+const tx = require('../src/api/transactions');
 
 var nodeServerWsIp = "";
 var address = "";

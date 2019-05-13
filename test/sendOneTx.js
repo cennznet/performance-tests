@@ -14,7 +14,7 @@
 
 
 // require('../src/api/transaction')
-const {transferWithManualNonce, getAddrBal, apiPool} = require('../src/api/transaction')
+const {transferWithManualNonce, getAddrBal, apiPool} = require('../src/api/transactions')
 
 
 async function getArgs()

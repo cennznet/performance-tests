@@ -14,11 +14,11 @@
 
 
 
-const callScn = require('./scenario')
-const {logRecord, sleep} = require('./api/general')
+const { callScn } = require('./scenario')
+const { logRecord, sleep } = require('./api/general')
 const parameter = require('./parameter');
-const {subscribeBlockTx, unsubscribeBlockTx, apiPool} = require('./api/transaction')
-require('./api/transaction')
+const { subscribeBlockTx, unsubscribeBlockTx, apiPool } = require('./api/transactions')
+require('./api/transactions')
 require('./html_chart/server')
 const topupAll = require('../tools/topup')
 
