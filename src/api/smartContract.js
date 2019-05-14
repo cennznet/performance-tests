@@ -31,7 +31,7 @@ module.exports.putCode = async function(issuerSeed, gasLimit, contractFilePath){
     const trans = api.tx.contract.putCode(gasLimit, contractCode)
 
     // sign and send tx
-    const txResult = await signAndSendTx(trans, issuerSeed)
+    const txResult = await signAndSendTx(api, trans, issuerSeed)
 
     return txResult
 }

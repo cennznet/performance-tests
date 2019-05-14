@@ -38,6 +38,21 @@ global.CURRENCY = {
     SPEND:  16001,
 }
 
+
+
+class TxResult{
+    constructor(){
+        this.bSucc = false
+        this.message = ''
+        this.blockHash = ''
+        this.txHash = ''
+        this.extrinsicIndex = -1
+        this.byteLength = 0
+        this.txFee = 0
+        this.events = []
+    }
+}
+
 // Manage multiple ws connections
 class ApiPool{
 
@@ -351,18 +366,19 @@ async function transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult
     return { bSucc, message };
 }
 
-async function signAndSendTx(api, transaction, seedOrAccount, nonce_in = -1, waitFinalised = true){
+async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalised = false){
     const txResult = new TxResult()
 
     let account = null
     let nonce = nonce_in
 
     // convert seed to account. Seed is String, account is Object
-    typeof(seedOrAccount) == 'string' ? account = getAccount(seedOrAccount) : account = seedOrAccount
+    // typeof(seedOrAccount) == 'string' ? account = getAccount(seedOrAccount) : account = seedOrAccount
+    account = getAccount(seed)
     
     // if no nonce value, then get it
     if (nonce_in < 0){
-        nonce = await noncePool.getNewNonce(api, fromSeed);
+        nonce = await noncePool.getNewNonce(api, seed);
     }
 
     // Send and wait nonce changed
@@ -535,6 +551,7 @@ const noncePool = new NoncePool();
 module.exports.apiPool = apiPool
 
 // module.exports.send = send;
+module.exports.TxResult = TxResult 
 module.exports.sendWaitConfirm = sendWaitConfirm;
 module.exports.getAddrBal = getAddrBal;
 module.exports.subscribeBlockTx = subscribeBlockTx;
