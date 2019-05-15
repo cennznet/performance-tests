@@ -51,6 +51,3 @@ module.exports.sleep = sleep
 module.exports.logResultFlag = logResultFlag
 
 
-
-// logRecord('hello')
-// logRecord('hello2')

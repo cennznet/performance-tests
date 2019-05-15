@@ -45,7 +45,7 @@ async function callUserScenario(userId) {
 }
 
 function addStatistics(userId, txResult, responseTime, totalResponseTime)
-{
+{ 
     let bSucc = txResult.bSucc;
     let message = txResult.message;
     let sameUserIdIndex = -1;
