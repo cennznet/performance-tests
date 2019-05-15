@@ -33,7 +33,7 @@ async function getArgs()
     argv.e ? testEnv = argv.e : testEnv = 'local'   // test environment
     argv.c ? topupCnt = argv.c : topupCnt = 10000   // total address count to topup, default is 10k
     argv.s ? startNum = argv.s : startNum = 0;
-    argv.a ? amount = argv.a : amount = 10000000000;      // top-up amount
+    argv.a ? amount = argv.a : amount = '20000000000000000000';      // top-up amount
 }
 
 // test code
@@ -48,7 +48,7 @@ async function topup(fileName, startId = 0, endId = 10000, amt = amount) {
     {
         let seedId = i % fromSeedLst.length
         let seedFrom = fromSeedLst[seedId]
-        let seedTo = addrLst[i][0]
+        let seedTo = addrLst[i]
 
         console.log(`tx = ${i}, ${seedFrom} -> ${seedTo}`)
 

@@ -366,7 +366,7 @@ async function transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult
     return { bSucc, message };
 }
 
-async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalised = false){
+async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalised = true){
     const txResult = new TxResult()
 
     let account = null
@@ -404,7 +404,7 @@ async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalise
                 // get all events
                 txResult.events = r.events
                 // get tx fee
-                txResult.txFee = await queryTxFee(txResult.blockHash, txResult.extrinsicIndex)
+                // txResult.txFee = await queryTxFee(txResult.blockHash, txResult.extrinsicIndex)
 
                 // check if the extrinsic succeeded
                 r.events.forEach(({ phase, event: { data, method, section } }) => {
@@ -561,4 +561,5 @@ module.exports.transferWithManualNonce = transferWithManualNonce;
 module.exports.queryFreeBalance = queryFreeBalance;
 module.exports.setApiSigner = setApiSigner
 module.exports.signAndSendTx = signAndSendTx
+module.exports.getAddressFromSeed = getAddressFromSeed
 

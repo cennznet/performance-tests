@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const {apiPool, signAndSendTx} = require('./transactions')
+const {apiPool, signAndSendTx, getAddressFromSeed} = require('./transactions')
 
 const fs = require('fs');
 
 
 module.exports.putCode = async function(issuerSeed, gasLimit, contractFilePath){ 
+    let currContractHash = ''
+
     // get api
     const api = await apiPool.getWsApi()
 
@@ -33,25 +35,78 @@ module.exports.putCode = async function(issuerSeed, gasLimit, contractFilePath){
     // sign and send tx
     const txResult = await signAndSendTx(api, trans, issuerSeed)
 
-    return txResult
+    // get the contract hash
+    txResult.events.forEach(({ phase, event: { data, method, section } }) => {
+        if (method == 'CodeStored'){
+            currContractHash = data[0].toString()   // data is an array
+        }
+    });
+
+    // check contact hash
+    // if ( '' !== currContractHash ){
+    //     txResult.bSucc = true
+    // }
+    // else{
+    //     txResult.bSucc = false
+    //     txResult.message = 'Smart contract putCode failed.'
+    // }
+
+
+    return currContractHash
 }
 
-module.exports.createContract = async function (issuerSeed, endowment, gasLimit, contractHash){ 
+module.exports.createContract = async function (issuerSeed, endowment, gasLimit, contractHash, contractJsonFilePath){ 
+
+    let bSucc = false
+
     // get api
     const api = await apiPool.getWsApi()
     
+    // read contract file
+    let contractJsonCode = fs.readFileSync(contractJsonFilePath);
+
+    // convert to hex
+    contractJsonCode = '0x' + contractJsonCode.toString('hex')
+
     // make tranction
     const trans = api.tx.contract.create(endowment, gasLimit, contractHash, '0x')
 
     // sign and send tx
-    const txResult = await signAndSendTx(trans, issuerSeed)
+    const txResult = await signAndSendTx(api, trans, issuerSeed)
 
-    // console.log('events =', txResult.events)
+    // get the contract hash
+    txResult.events.forEach(({ phase, event: { data, method, section } }) => {
+        if (method == 'Instantiated'){
+            bSucc = true
+        }
+    });
 
-    // txResult.events.forEach(({ phase, event: { data, method, section } }) => {
-    //     console.log('phase =', phase)
-    //     console.log('event =', event)
-    // });
 
-    return txResult
+    return bSucc
+}
+
+module.exports.callContract = async function (issuerSeed, destSeed, value, gasLimit){ 
+
+    let bSucc = false
+
+    // get api
+    const api = await apiPool.getWsApi()
+
+    const destAddress = getAddressFromSeed(destSeed)
+
+    // make tranction
+    const trans = api.tx.contract.call(destAddress, value, gasLimit, '0x')
+
+    // sign and send tx
+    const txResult = await signAndSendTx(api, trans, issuerSeed)
+
+    // get the contract hash
+    txResult.events.forEach(({ phase, event: { data, method, section } }) => {
+        if (method == 'Transfer'){
+            bSucc = true
+        }
+    });
+
+
+    return bSucc
 }

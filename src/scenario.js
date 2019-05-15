@@ -17,9 +17,15 @@ const {transferWithManualNonce} = require('./api/transactions')
 const {loadTestAddress} = require('./parameter');
 const smc = require('./api/smartContract')
 
+global.totalTx = 0
+
+// module.exports.totalTx = totalTx
 
 module.exports.callScn = async function(userId) { // each user allocated a distinct seed
+    totalTx += 1
+    
     return await _playSmartContract(userId);
+    // return await _sendTx(userId)
 }
 
 module.exports.TxResult = class{
@@ -31,8 +37,8 @@ module.exports.TxResult = class{
 
 async function _sendTx(userId){
     let returnObj = [];
-    let seedFrom = addressListFrom[userId][0];
-    let seedTo = addressListTo[userId][0];
+    let seedFrom = addressListFrom[userId];
+    let seedTo = addressListTo[userId];
 
     returnObj = await transferWithManualNonce( seedFrom, seedTo, 1000);
 
@@ -41,28 +47,51 @@ async function _sendTx(userId){
 
 
 async function _playSmartContract(userId){
-    let txResult = null
+    let retMsg = {bSucc: true, message: ""}
     
-    const contractFilePath = __dirname + '/../files/spin2win.wasm'
-    // const contractHash = '0xef55f2f51f83c5dea3dd0ba33f654d00ca3f62e93929e4c0225e396c310fd1b3'
-    const contractHash = '0xf7920e0110a280214c3f490f96cb1894761ac8fdbb7ebbc44cc9d8c46a78bbd4'
-    const issuerSeed = addressListFrom[userId][0]
-    const gasLimit = 10000
-    const endowment = 1001
+    const contractWasmFilePath = __dirname + '/../files/spin2win.wasm'
+    const contractJsonFilePath = __dirname + '/../files/spin2win.json'
+    const expectedContractHash = '0x1adcb2e5becd80a4250534bd43e4f172a33ffcac5590e9777665677ebfc58285'
+    const issuerSeed = addressListFrom[userId]
+    const destSeed = addressListTo[userId]
+    const gasLimit = '50000'
+    const endowment = '10000000000000000000'
+    const transferValue = '1'
+    
     let   currContractHash = ''
+    let   txSucc = null
     
-    // txResult = await transferWithManualNonce( issuerSeed, 'James', 1000, true);
-    txResult = await smc.putCode(issuerSeed, gasLimit, contractFilePath)
-    // get the contract hash
-    txResult.events.forEach(({ phase, event: { data, method, section } }) => {
-        if (method == 'CodeStored'){
-            currContractHash = data[0].toString()   // data is an array
-        }
-    });
+    /**
+     * Step - 1: Deploy contract
+     */
+    currContractHash = await smc.putCode(issuerSeed, gasLimit, contractWasmFilePath)
+    if ( currContractHash.length <= 0 ){
+        retMsg.bSucc = false
+        retMsg.message = 'Smart contract putCode() failed.'
+        return retMsg
+    }
 
-    console.log('currContractHash =', currContractHash)
+    /**
+     * Step - 2: Create contract instance
+     */
+    txSucc = await smc.createContract(issuerSeed, endowment, gasLimit, currContractHash, contractJsonFilePath)
+    if ( txSucc == false ){
+        retMsg.bSucc = false
+        retMsg.message = 'Smart contract createContract() failed.'
+        return retMsg
+    }
+
+    /**
+     * Step - 3: Call contract
+     */
+    
+    txSucc = await smc.callContract(issuerSeed, destSeed, transferValue, gasLimit)
+    if ( txSucc == false ){
+        retMsg.bSucc = false
+        retMsg.message = 'Smart contract callContract() failed.'
+        return retMsg
+    }
     
 
-    return {bSucc: txResult.bSucc, message: txResult.message};
-
+    return retMsg
 }

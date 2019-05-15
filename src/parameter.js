@@ -31,7 +31,7 @@ async function loadAddrFile(filePath)
     // v is value, i is index key
     addressData.forEach(function (v, i) {
         let addressLine = v.split(',')
-        addressList.push(addressLine);
+        addressList.push(addressLine[0]);
     });
 
     return addressList;

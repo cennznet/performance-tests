@@ -15,11 +15,12 @@
 
 
 const { callScn } = require('./scenario')
-const { logRecord, sleep } = require('./api/general')
+const { logRecord, sleep, logResultFlag } = require('./api/general')
 const parameter = require('./parameter');
 const { subscribeBlockTx, unsubscribeBlockTx, apiPool } = require('./api/transactions')
 require('./api/transactions')
 require('./html_chart/server')
+require('./scenario')
 const topupAll = require('../tools/topup')
 
 
@@ -187,10 +188,12 @@ async function sample(intervalMs) {
             block_maxTxCnt = _sampleMaxBlockTxCnt;
 
         // write sample record into file
-        logRecord(`${elapseTime},${currUserCount},${sampleTps.toFixed(2)},`+
+        if (logResultFlag){
+            logRecord(`${elapseTime},${currUserCount},${sampleTps.toFixed(2)},`+
                    `${sampleAvgRespTime.toFixed(0)},` +
                    `${sampleSuccTxCnt},${sampleFailTxCnt},` + 
                    `${_sampleMaxBlockTime},${_sampleMaxBlockTxCnt}`)
+        }
 
         console.log('>>>>>>>>>>>>>>>>>>>>>')
         console.log('current time = ', new Date().toLocaleString())
@@ -449,7 +452,7 @@ async function runTest()
                         tps_max.toFixed(2))
             console.log(`block_maxTime = ${block_maxTime/1000}s, block_maxTxCnt = ${block_maxTxCnt}`)
         }
-        console.log(`Total tx sent: ${apiPool.getApiUsage()}`)
+        console.log(`Total tx sent: ${totalTx}`)
         console.log('----------------------------')
 
         after();

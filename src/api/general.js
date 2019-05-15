@@ -13,6 +13,7 @@
 // limitations under the License.
 
 
+const logResultFlag = false
 
 const fs = require('fs');
 
@@ -47,6 +48,7 @@ if (!fs.existsSync(resultDir)){
 
 module.exports.logRecord = logRecord
 module.exports.sleep = sleep
+module.exports.logResultFlag = logResultFlag
 
 
 
