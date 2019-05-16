@@ -308,7 +308,6 @@ async function transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult
 
     var bSucc = false;
     var message = "";
-    const txValidStatus = {'Future':0,'Ready':1,'Finalised':2,'Broadcast':4};
     let api = null
     const assetId = CURRENCY.SPEND
 
@@ -453,28 +452,31 @@ async function subscribeBlockTx() {
         }
         prevTime = currTime;
 
-        let blockNo = header.blockNumber;
+        console.log('header.blockNumber =', header.blockNumber.toString())
+        console.log('currTime =', currTime)
 
-        let getBlockArgs = []
-        if (blockNo) {
-            if (blockNo.toString().startsWith('0x')) {
-                getBlockArgs = [blockNo]
-            } else {
-                getBlockArgs = [await api.rpc.chain.getBlockHash(+blockNo)]
+        // get extrinsic count
+        new Promise(async (resolve,reject) => {
+
+            let blockNo = header.blockNumber;
+
+            let getBlockArgs = []
+            if (blockNo) {
+                if (blockNo.toString().startsWith('0x')) {
+                    getBlockArgs = [blockNo]
+                } else {
+                    getBlockArgs = [await api.rpc.chain.getBlockHash(+blockNo)]
+                }
             }
-        }
-        // get block information
-        const block = await api.rpc.chain.getBlock(...getBlockArgs)
-        blockTxCnt = block.block.extrinsics.length - 2
-        if (blockTxCnt > sampleMaxBlockTxCnt){    // get sampleMaxBlockTxCnt
-            sampleMaxBlockTxCnt = blockTxCnt
-        }
 
-        // console.log(block.toJSON())  // block details
+            const block = await api.rpc.chain.getBlock(...getBlockArgs)
+            blockTxCnt = block.block.extrinsics.length - 1
+            if (blockTxCnt > sampleMaxBlockTxCnt){    // get sampleMaxBlockTxCnt
+                sampleMaxBlockTxCnt = blockTxCnt
+            }
+            resolve(true)
+        })
 
-        // for (const tx of block.block.extrinsics) {   // extrinsics details
-        //     console.log(tx.hash.toString(), ':', tx.method.meta.name.toString(), tx.method.toJSON())
-        // }
     });
 
     // Id for the subscription, we can cleanup and unsubscribe via

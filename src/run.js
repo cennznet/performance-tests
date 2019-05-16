@@ -24,7 +24,7 @@ require('./scenario')
 const topupAll = require('../tools/topup')
 
 
-async function callUserScenario(userId) {
+async function callUserScenario(userId, loopCount) {
     let txResult = null;
     let responseTime = 0;
     let startTime = 0;
@@ -33,7 +33,7 @@ async function callUserScenario(userId) {
     startTime = new Date().getTime();
     trans_total++;
 
-    txResult = await callScn(userId);
+    txResult = await callScn(userId, loopCount);
     
     trans_done++;
     endTime = new Date().getTime();
@@ -67,7 +67,7 @@ function addStatistics(userId, txResult, responseTime, totalResponseTime)
 
         if (responseTime > resp_max)    // get resp_max
             resp_max = responseTime;
-        if (responseTime < resp_min)   // get resp_min
+        if (resp_min < 0.001 || responseTime < resp_min)   // get resp_min
             resp_min = responseTime;
         
     }
@@ -102,9 +102,9 @@ async function iterateTask(userId) {
         await callUserScenario(userId)
     }
     else {
+        let loopCount = 0
         while (!bTestStop) {
-            await callUserScenario(userId)
-    
+            await callUserScenario(userId, loopCount++)
             await sleep(pacingTime);
             // if (isRunOnce) bTestStop = true; // for once run, exit user
         }
@@ -350,7 +350,7 @@ var trans_fail = 0;
 
 // response time details. Only for succ transaction.
 var resp_max = 0.0;
-var resp_min = 9999.0;
+var resp_min = 0.0;
 var resp_avg = 0.0;
 var resp_total = 0.0;
 // var currTotalRespTime = 0.0;

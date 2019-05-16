@@ -20,11 +20,13 @@ const smc = require('./api/smartContract')
 global.totalTx = 0
 
 // module.exports.totalTx = totalTx
+const endowedSeedLst = ['Alice', 'Bob', 'Charlie', 'Eve', 'Dave', 'Ferdie']
+var topupIndex = 0
 
-module.exports.callScn = async function(userId) { // each user allocated a distinct seed
+module.exports.callScn = async function(userId, loopCount) { // each user allocated a distinct seed
     totalTx += 1
     
-    return await _playSmartContract(userId);
+    return await _playSmartContract(userId, loopCount);
     // return await _sendTx(userId)
 }
 
@@ -46,14 +48,17 @@ async function _sendTx(userId){
 }
 
 
-async function _playSmartContract(userId){
+async function _playSmartContract(userId, loopCount){
     let retMsg = {bSucc: true, message: ""}
     
     const contractWasmFilePath = __dirname + '/../files/spin2win.wasm'
     const contractJsonFilePath = __dirname + '/../files/spin2win.json'
-    const expectedContractHash = '0x1adcb2e5becd80a4250534bd43e4f172a33ffcac5590e9777665677ebfc58285'
-    const issuerSeed = addressListFrom[userId]
-    const destSeed = addressListTo[userId]
+
+    // generate seed. For each iteration, contract needs different issuer to prevent dupliate error.
+    const seqNo = 10000000 + loopCount
+    const issuerSeed = `${addressListFrom[userId]}_${seqNo}`
+    const destSeed =  `${addressListTo[userId]}_${seqNo}`
+
     const gasLimit = '50000'
     const endowment = '10000000000000000000'
     const transferValue = '1'
@@ -61,6 +66,20 @@ async function _playSmartContract(userId){
     let   currContractHash = ''
     let   txSucc = null
     
+    /**
+     * Step - 0: Topup issuer account
+     */
+    const seedFrom = endowedSeedLst[topupIndex % endowedSeedLst.length]
+    const topupAmt = '20000000000000000000'
+    topupIndex ++
+    let transferResult = await transferWithManualNonce( seedFrom, issuerSeed, topupAmt, true);
+    if ( !transferResult.bSucc ){
+        retMsg.bSucc = false
+        retMsg.message = `Top up from [${seedFrom}] to [${issuerSeed}] with amount [${endowment}] failed: ${transferResult.message}`
+        return retMsg
+    }
+
+
     /**
      * Step - 1: Deploy contract
      */

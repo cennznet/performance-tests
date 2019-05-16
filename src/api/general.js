@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-const logResultFlag = false
+const logResultFlag = true
 
 const fs = require('fs');
 
