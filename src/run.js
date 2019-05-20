@@ -14,15 +14,47 @@
 
 
 
-const { callScn } = require('./scenario')
+// const { callScn } = require('./scenario')
 const { logRecord, sleep, logResultFlag } = require('./api/general')
 const parameter = require('./parameter');
 const { subscribeBlockTx, unsubscribeBlockTx, apiPool } = require('./api/transactions')
 require('./api/transactions')
 require('./html_chart/server')
-require('./scenario')
+// require('./scenario')
 const topupAll = require('../tools/topup')
+const { Action } = require('./action')
 
+/**
+ * Execute all functions in class Action. 
+ * - Functions will be ignored if the name starts with '_'
+ * - constructor() will be ignored
+ */
+async function runAction(userId, iterationNum){
+    totalTx += 1
+    
+    // create action instance
+    const action = new Action()
+    action.userId = userId
+    action.iterationNum = iterationNum
+
+    // get all functions' name
+    funcNameLst = Object.getOwnPropertyNames(Action.prototype)
+
+    for (let i = 0; i < funcNameLst.length; i++){
+        let funcName = funcNameLst[i]
+        if ( funcName == 'constructor' || funcName[0] == '_' ){
+            // pass
+        }
+        else{
+            // invoke the function
+            let txResult = await action[funcName]()
+            addStatistics(userId, txResult, 0);
+            // TODO: collect statistics
+        }
+    }
+
+    return
+}
 
 async function callUserScenario(userId, loopCount) {
     let txResult = null;
@@ -33,15 +65,16 @@ async function callUserScenario(userId, loopCount) {
     startTime = new Date().getTime();
     trans_total++;
 
-    txResult = await callScn(userId, loopCount);
+    txResult = await runAction(userId, loopCount);
+    // txResult = await callScn(userId, loopCount);
     
     trans_done++;
     endTime = new Date().getTime();
 
     responseTime = endTime - startTime;         // get tx response time
 
-    // add the tx result into statistics
-    addStatistics(userId, txResult, responseTime);
+    // add the tx result into statistics. TODO: add back later
+    // addStatistics(userId, txResult, responseTime);
 }
 
 function addStatistics(userId, txResult, responseTime, totalResponseTime)

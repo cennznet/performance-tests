@@ -18,6 +18,7 @@ const { SimpleKeyring, Wallet } = require('@cennznet/wallet')
 const { Api } = require('@cennznet/api')
 const { WsProvider } = require('@cennznet/api/polkadot')
 const { GenericAsset}  = require('@cennznet/crml-generic-asset')
+const { sleep } = require('./general')
 
 
 
@@ -304,7 +305,26 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
     return { bSucc, message };
 }
 
-async function transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult = false) {
+async function transfer(fromSeed, toAddress, amount, isWaitResult = false) {
+
+    const api = await apiPool.getWsApi()
+
+    await setApiSigner(api, fromSeed)
+    const ga = await GenericAsset.create(api)
+
+    // convert to address if input is a seed
+    const _toAddress = await getAddressFromSeed(toAddress)
+
+    // Create a extrinsic
+    const transfer = ga.transfer(CURRENCY.SPEND, _toAddress, amount)
+
+    // send tx
+    const txResult = signAndSendTx(api, transfer, fromSeed, -1, waitFinalised = isWaitResult)
+
+    return txResult
+}
+
+async function transfer2(fromSeed, toAddress, amount, isWaitResult = false) {
 
     var bSucc = false;
     var message = "";
@@ -535,7 +555,7 @@ async function sendMulti(fromSeed, toAddressList, amount, txCount) {
 }
 
 
-async function queryFreeBalance( address, assetId = CURRENCY.SPEND) {    // assetId: 0 - CENNZ, 10 - SPEND
+async function queryFreeBalance(address, assetId = CURRENCY.SPEND) {    // assetId: 0 - CENNZ, 10 - SPEND
 
     // get balance via GenericAsset
     const api = await apiPool.getWsApi()
@@ -546,6 +566,52 @@ async function queryFreeBalance( address, assetId = CURRENCY.SPEND) {    // asse
 
     return balance.toString();
 }
+
+module.exports.waitBalanceChange = async function(seed, assetId = CURRENCY.SPEND, timeLimitSec = 60 ){
+    // get api
+    // get balance via GenericAsset
+    const api = await apiPool.getWsApi()
+    const ga = await GenericAsset.create(api);
+    const address = getAddressFromSeed(seed)
+    const previous = await ga.getFreeBalance(assetId, address)
+    // console.log('previous =', previous.toString())
+    let i = 0
+
+    // check balance every second
+    for (let i = 0; i < timeLimitSec; i++ ){
+        let current = await ga.getFreeBalance(assetId, address)
+        // console.log('current =', current.toString())
+        if ( current.toString() != previous.toString() ) {
+            break
+        }
+        
+        await sleep(1000) // sleep for 1 s
+    }
+
+    // check if the balance changed
+    if (i >= timeLimitSec){
+        return false
+    }
+    else{
+        return true
+    }
+
+    // listen to balance change
+    const result = await new Promise(async (resolve, reject) => { 
+        ga.getFreeBalance(assetId, address, (current) => {
+            if (current == null || current <= 0 ){
+                return;
+            }
+            // console.log('current =', current.toString())
+            
+        }).catch((error) => {
+            reject(error)
+        });
+    })
+
+    return result
+}
+
 
 const apiPool = new ApiPool();
 const noncePool = new NoncePool();
@@ -559,7 +625,7 @@ module.exports.getAddrBal = getAddrBal;
 module.exports.subscribeBlockTx = subscribeBlockTx;
 module.exports.unsubscribeBlockTx = unsubscribeBlockTx;
 module.exports.sendMulti = sendMulti;
-module.exports.transferWithManualNonce = transferWithManualNonce;
+module.exports.transfer = transfer;
 module.exports.queryFreeBalance = queryFreeBalance;
 module.exports.setApiSigner = setApiSigner
 module.exports.signAndSendTx = signAndSendTx

@@ -13,104 +13,50 @@
 // limitations under the License.
 
 
-const {transferWithManualNonce} = require('./api/transactions')
-const {loadTestAddress} = require('./parameter');
-const smc = require('./api/smartContract')
+// const { Action } = require('./action')
+const { transfer } = require('./api/transactions')
+const { loadTestAddress } = require('./parameter');
+// const smc = require('./api/smartContract')
+const crypto = require('crypto')
 
 global.totalTx = 0
 
-// module.exports.totalTx = totalTx
-const endowedSeedLst = ['Alice', 'Bob', 'Charlie', 'Eve', 'Dave', 'Ferdie']
-var topupIndex = 0
 
-module.exports.callScn = async function(userId, loopCount) { // each user allocated a distinct seed
-    totalTx += 1
-    
-    return await _playSmartContract(userId, loopCount);
-    // return await _sendTx(userId)
-}
 
-module.exports.TxResult = class{
+class TxResult{
     constructor(){
-        this.bSucc = false
+        this.bSucc = true
         this.message = ''
     }
 }
 
-async function _sendTx(userId){
-    let returnObj = [];
-    let seedFrom = addressListFrom[userId];
-    let seedTo = addressListTo[userId];
 
-    returnObj = await transferWithManualNonce( seedFrom, seedTo, 1000);
 
-    return returnObj;
+module.exports.ScenarioBase = class{
+    constructor(userId = 0, iterationNum = 0){
+        // generate an unique instance id to specify a class object
+        this.instanceId = crypto.randomBytes(16).toString('hex')
+        this.userId = userId
+        this.iterationNum = iterationNum
+        this.resultMsg = new TxResult()
+    }
+
+    transaction_start(txName){
+        console.log(`User [${this.userId}]'s [${txName}] started at time [${new Date().getTime()}] `)
+    }
+
+    transaction_end(txName, isPassed){
+        console.log(`User [${this.userId}]'s [${txName}] got result (${isPassed}) at time [${new Date().getTime()}] `)
+    }
 }
 
+module.exports.TxResult = TxResult
 
-async function _playSmartContract(userId, loopCount){
-    let retMsg = {bSucc: true, message: ""}
+// module.exports.callScn = async function(userId, loopCount) { // each user allocated a distinct seed
+//     totalTx += 1
     
-    const contractWasmFilePath = __dirname + '/../files/spin2win.wasm'
-    const contractJsonFilePath = __dirname + '/../files/spin2win.json'
+//     // create action instance
+//     const action = new Action()
 
-    // generate seed. For each iteration, contract needs different issuer to prevent dupliate error.
-    const seqNo = 10000000 + loopCount
-    const issuerSeed = `${addressListFrom[userId]}_${seqNo}`
-    const destSeed =  `${addressListTo[userId]}_${seqNo}`
-
-    const gasLimit = '50000'
-    const endowment = '10000000000000000000'
-    const transferValue = '1'
-    
-    let   currContractHash = ''
-    let   txSucc = null
-    
-    /**
-     * Step - 0: Topup issuer account
-     */
-    const seedFrom = endowedSeedLst[topupIndex % endowedSeedLst.length]
-    const topupAmt = '20000000000000000000'
-    topupIndex ++
-    let transferResult = await transferWithManualNonce( seedFrom, issuerSeed, topupAmt, true);
-    if ( !transferResult.bSucc ){
-        retMsg.bSucc = false
-        retMsg.message = `Top up from [${seedFrom}] to [${issuerSeed}] with amount [${endowment}] failed: ${transferResult.message}`
-        return retMsg
-    }
-
-
-    /**
-     * Step - 1: Deploy contract
-     */
-    currContractHash = await smc.putCode(issuerSeed, gasLimit, contractWasmFilePath)
-    if ( currContractHash.length <= 0 ){
-        retMsg.bSucc = false
-        retMsg.message = 'Smart contract putCode() failed.'
-        return retMsg
-    }
-
-    /**
-     * Step - 2: Create contract instance
-     */
-    txSucc = await smc.createContract(issuerSeed, endowment, gasLimit, currContractHash, contractJsonFilePath)
-    if ( txSucc == false ){
-        retMsg.bSucc = false
-        retMsg.message = 'Smart contract createContract() failed.'
-        return retMsg
-    }
-
-    /**
-     * Step - 3: Call contract
-     */
-    
-    txSucc = await smc.callContract(issuerSeed, destSeed, transferValue, gasLimit)
-    if ( txSucc == false ){
-        retMsg.bSucc = false
-        retMsg.message = 'Smart contract callContract() failed.'
-        return retMsg
-    }
-    
-
-    return retMsg
-}
+//     return await action.playSmartContract(userId, loopCount);
+// }
