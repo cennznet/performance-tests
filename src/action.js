@@ -40,7 +40,7 @@ module.exports.Action = class extends ScenarioBase{
 
     /**
      * Run a smart contract work flow.
-     * - check balance change to 
+     * - use waitBalanceChange() instead of callback to check if tx is finalised, as tx callback function won't response in time.
      */
     async playSmartContract(){
         let retMsg = this.resultMsg
@@ -78,6 +78,67 @@ module.exports.Action = class extends ScenarioBase{
         this.transaction_end('transfer_topup', true)
     
     
+        /**
+         * Step - 1: Deploy contract
+         */
+        this.transaction_start('putCode')
+        txSucc = smc.putCode(issuerSeed, gasLimit, contractWasmFilePath)
+        // if ( currContractHash.length <= 0 ){
+        //     this.transaction_end('putCode', false)
+        //     retMsg.bSucc = false
+        //     retMsg.message = 'Smart contract putCode() failed.'
+        //     return retMsg
+        // }
+        await waitBalanceChange(issuerSeed)
+        this.transaction_end('putCode', true)
+    
+        /**
+         * Step - 2: Create contract instance
+         */
+        this.transaction_start('createContract')
+        smc.createContract(issuerSeed, endowment, gasLimit, currContractHash, contractJsonFilePath)
+        // if ( txSucc == false ){
+        //     retMsg.bSucc = false
+        //     retMsg.message = 'Smart contract createContract() failed.'
+        //     return retMsg
+        // }
+        await waitBalanceChange(issuerSeed)
+        this.transaction_end('createContract', true)
+    
+        /**
+         * Step - 3: Call contract
+         */
+        this.transaction_start('callContract')
+        smc.callContract(issuerSeed, destSeed, transferValue, gasLimit)
+        // if ( txSucc == false ){
+        //     retMsg.bSucc = false
+        //     retMsg.message = 'Smart contract callContract() failed.'
+        //     return retMsg
+        // }
+        await waitBalanceChange(destSeed)
+        this.transaction_end('callContract', true)
+
+        return retMsg
+    }
+
+    async _playSmartContract_noTopUp(){
+        let retMsg = this.resultMsg
+        
+        const contractWasmFilePath = __dirname + '/../files/spin2win.wasm'
+        const contractJsonFilePath = __dirname + '/../files/spin2win.json'
+        const currContractHash = '0x1adcb2e5becd80a4250534bd43e4f172a33ffcac5590e9777665677ebfc58285'
+        // generate seed. For each iteration, contract needs different issuer to prevent dupliate error.
+        const seqNo = 10000000 + this.iterationNum
+        const issuerSeed = `${addressListFrom[this.userId]}_${seqNo}`
+        const destSeed =  `${addressListTo[this.userId]}_${seqNo}`
+    
+        const gasLimit = '50000'
+        const endowment = '10000000000000000000'
+        const transferValue = '1'
+        
+        // let   currContractHash = ''
+        let   txSucc = null
+        
         /**
          * Step - 1: Deploy contract
          */

@@ -53,7 +53,7 @@ async function topup(fileName, startId = 0, endId = 10000, amt = amount) {
         console.log(`tx = ${i}, ${seedFrom} -> ${seedTo}`)
 
         for ( let j = 0; j< 60; j++ ){
-            let retObj = await transfer( seedFrom, seedTo, amt);
+            let retObj = await transfer( seedFrom, seedTo, amt, false);
 
             if ( retObj.bSucc ) break;
             else {

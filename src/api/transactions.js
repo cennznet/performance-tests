@@ -18,27 +18,13 @@ const { SimpleKeyring, Wallet } = require('@cennznet/wallet')
 const { Api } = require('@cennznet/api')
 const { WsProvider } = require('@cennznet/api/polkadot')
 const { GenericAsset}  = require('@cennznet/crml-generic-asset')
-const { sleep } = require('./general')
+const { sleep, CURRENCY } = require('./general')
 
-
-
-global.sampleMaxBlockTime = 0;
-global.sampleMaxBlockTxCnt = 0;
-// global.nonceList = [];
-
-// var api = null;
-var blockSubscriptionId = 0;
 
 const NodeSelectMethod = {
     SEQUENCE:   'seqence',
     RANDOM:     'random',
 }
-
-global.CURRENCY = {
-    STAKE:  16000,
-    SPEND:  16001,
-}
-
 
 
 class TxResult{
@@ -410,6 +396,7 @@ async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalise
         await transaction.send( async (r) => {
             // if donot wait, return straighaway
             if (waitFinalised != true){
+                txResult.bSucc = true
                 resolve(true); 
             }
 
@@ -447,69 +434,6 @@ async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalise
     });
 
     return txResult
-}
-
-
-async function subscribeBlockTx() {
-
-    // get first api
-    let api = apiPool.getWsApiById(0)
-
-    prevTime = new Date().getTime();
-
-    // Subscribe to the new headers on-chain. The callback is fired when new headers
-    // are found, the call itself returns a promise with a subscription that can be
-    // used to unsubscribe from the newHead subscription
-    const subscriptionId = await api.rpc.chain.subscribeNewHead(async (header) => {
-        // get block interval
-        let currTime = new Date().getTime();
-        let blockTxCnt = 0;
-        let blockTime = currTime - prevTime
-        // console.log('blockTime = ',blockTime)
-
-        if (blockTime > sampleMaxBlockTime){
-            sampleMaxBlockTime = blockTime    // get sampleMaxBlockTime
-        }
-        prevTime = currTime;
-
-        console.log('header.blockNumber =', header.blockNumber.toString())
-        console.log('currTime =', currTime)
-
-        // get extrinsic count
-        new Promise(async (resolve,reject) => {
-
-            let blockNo = header.blockNumber;
-
-            let getBlockArgs = []
-            if (blockNo) {
-                if (blockNo.toString().startsWith('0x')) {
-                    getBlockArgs = [blockNo]
-                } else {
-                    getBlockArgs = [await api.rpc.chain.getBlockHash(+blockNo)]
-                }
-            }
-
-            const block = await api.rpc.chain.getBlock(...getBlockArgs)
-            blockTxCnt = block.block.extrinsics.length - 1
-            if (blockTxCnt > sampleMaxBlockTxCnt){    // get sampleMaxBlockTxCnt
-                sampleMaxBlockTxCnt = blockTxCnt
-            }
-            resolve(true)
-        })
-
-    });
-
-    // Id for the subscription, we can cleanup and unsubscribe via
-    // `api.chain.newHead.unsubscribe(subscriptionId)`
-    // console.log(`subsciptionId: ${subscriptionId}`);
-    blockSubscriptionId = subscriptionId
-    return subscriptionId
-}
-
-async function unsubscribeBlockTx()
-{
-    let api = apiPool.getWsApiById(0)
-    await api.chain.newHead.unsubscribe(blockSubscriptionId);
 }
 
 async function sendMulti(fromSeed, toAddressList, amount, txCount) {
@@ -553,7 +477,6 @@ async function sendMulti(fromSeed, toAddressList, amount, txCount) {
         console.log(`Error = ${e}`)
     }
 }
-
 
 async function queryFreeBalance(address, assetId = CURRENCY.SPEND) {    // assetId: 0 - CENNZ, 10 - SPEND
 
@@ -622,8 +545,8 @@ module.exports.apiPool = apiPool
 module.exports.TxResult = TxResult 
 module.exports.sendWaitConfirm = sendWaitConfirm;
 module.exports.getAddrBal = getAddrBal;
-module.exports.subscribeBlockTx = subscribeBlockTx;
-module.exports.unsubscribeBlockTx = unsubscribeBlockTx;
+// module.exports.subscribeBlockTx = subscribeBlockTx;
+// module.exports.unsubscribeBlockTx = unsubscribeBlockTx;
 module.exports.sendMulti = sendMulti;
 module.exports.transfer = transfer;
 module.exports.queryFreeBalance = queryFreeBalance;

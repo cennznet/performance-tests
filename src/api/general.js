@@ -50,4 +50,7 @@ module.exports.logRecord = logRecord
 module.exports.sleep = sleep
 module.exports.logResultFlag = logResultFlag
 
-
+module.exports.CURRENCY = {
+    STAKE:  16000,
+    SPEND:  16001,
+}
