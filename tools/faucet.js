@@ -14,7 +14,7 @@
 
 
 
-const {transferWithManualNonce, apiPool} = require('../src/api/transactions')
+const {transfer, apiPool} = require('../src/api/transactions')
 const {loadAddrFile} = require('../src/parameter');
 // const {sleep} = require('../src/api/general')
 
@@ -55,7 +55,7 @@ async function faucet(fileName) {
 
         console.log(`${seed} -> ${toAddress} with ${amt}`)
         try{
-            await transferWithManualNonce( seed, toAddress, amt, 0)
+            await transfer( seed, toAddress, amt, 0)
         }
         catch(e){
            console.log('error =', e)

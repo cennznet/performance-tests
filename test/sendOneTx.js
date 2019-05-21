@@ -14,7 +14,7 @@
 
 
 // require('../src/api/transaction')
-const {transferWithManualNonce, getAddrBal, apiPool} = require('../src/api/transactions')
+const {transfer, getAddrBal, apiPool} = require('../src/api/transactions')
 
 
 async function getArgs()
@@ -41,7 +41,7 @@ async function send(fromSeed, toAddr, amount) {
     console.log('fromSeed bal before = ', bal.toString())
 
 
-    let result = await transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult = true);
+    let result = await transfer(fromSeed, toAddress, amount, isWaitResult = true);
     // console.log('result = ', result)
 
     bal = await getAddrBal(toAddress);

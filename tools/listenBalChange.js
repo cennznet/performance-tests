@@ -22,11 +22,13 @@ const { GenericAsset}  = require('@cennznet/crml-generic-asset')
 var nodeServerWsIp = "";
 var address = "";
 
-function getArgs()
+async function getArgs()
 {
     const argv = require('yargs').argv;
     argv.ws ? nodeServerWsIp = argv.ws : nodeServerWsIp = 'ws://127.0.0.1:9944';
     address = argv.a
+
+    await tx.apiPool.addWsIp(nodeServerWsIp)
 }
 
 async function listenBalChange(seed) {
@@ -68,7 +70,7 @@ async function listenBalChange(seed) {
 
 async function test() {
 
-    getArgs()
+    await getArgs()
     await listenBalChange(address)
 }
 
@@ -79,6 +81,6 @@ test()
     1. local:   
         node tools/listenBalChange -a Alice --ws ws://127.0.0.1:9944
     2. remote:  
-        node tools/listenBalChange -a 5DnThWP9rpHMe4XRgLpyxaesK91JxsRbL5zDkFb6t4jUUyYU --ws ws://10.1.1.100:9944
+        node tools/listenBalChange -a James --ws wss://cennznet-node-0.centrality.me:9944
 */
 

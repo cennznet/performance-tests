@@ -13,85 +13,85 @@
 // limitations under the License.
 
 
-const {transferWithManualNonce} = require('./api/transactions')
-const {loadTestAddress} = require('./parameter');
-const smc = require('./api/smartContract')
+// const { Action } = require('./action')
+const { transfer } = require('./api/transactions')
+const { loadTestAddress } = require('./parameter');
+// const smc = require('./api/smartContract')
+const crypto = require('crypto')
+const assert = require('assert')
+const statistics = require('./statistics') 
 
 global.totalTx = 0
 
-// module.exports.totalTx = totalTx
 
-module.exports.callScn = async function(userId) { // each user allocated a distinct seed
-    totalTx += 1
-    
-    return await _playSmartContract(userId);
-    // return await _sendTx(userId)
-}
 
-module.exports.TxResult = class{
+class TxResult{
     constructor(){
-        this.bSucc = false
+        this.bSucc = true
         this.message = ''
     }
 }
 
-async function _sendTx(userId){
-    let returnObj = [];
-    let seedFrom = addressListFrom[userId];
-    let seedTo = addressListTo[userId];
-
-    returnObj = await transferWithManualNonce( seedFrom, seedTo, 1000);
-
-    return returnObj;
+class TxInfo{
+    constructor(){
+        this.txName = ''
+        this.userId = -1
+        this.iterationNum = -1
+        this.startTime = null
+        this.endTime = null
+        this.responseTime = -1
+        this.isPassed = false
+    }
 }
 
 
-async function _playSmartContract(userId){
-    let retMsg = {bSucc: true, message: ""}
-    
-    const contractWasmFilePath = __dirname + '/../files/spin2win.wasm'
-    const contractJsonFilePath = __dirname + '/../files/spin2win.json'
-    const expectedContractHash = '0x1adcb2e5becd80a4250534bd43e4f172a33ffcac5590e9777665677ebfc58285'
-    const issuerSeed = addressListFrom[userId]
-    const destSeed = addressListTo[userId]
-    const gasLimit = '50000'
-    const endowment = '10000000000000000000'
-    const transferValue = '1'
-    
-    let   currContractHash = ''
-    let   txSucc = null
-    
-    /**
-     * Step - 1: Deploy contract
-     */
-    currContractHash = await smc.putCode(issuerSeed, gasLimit, contractWasmFilePath)
-    if ( currContractHash.length <= 0 ){
-        retMsg.bSucc = false
-        retMsg.message = 'Smart contract putCode() failed.'
-        return retMsg
+
+module.exports.ScenarioBase = class{
+    constructor(userId = 0, iterationNum = 0){
+        // generate an unique instance id to specify a class object
+        // this.instanceId = crypto.randomBytes(16).toString('hex')
+        this.userId = userId
+        this.iterationNum = iterationNum
+        this.resultMsg = new TxResult()
     }
 
-    /**
-     * Step - 2: Create contract instance
-     */
-    txSucc = await smc.createContract(issuerSeed, endowment, gasLimit, currContractHash, contractJsonFilePath)
-    if ( txSucc == false ){
-        retMsg.bSucc = false
-        retMsg.message = 'Smart contract createContract() failed.'
-        return retMsg
+    transaction_start(txName){  // TODO: maybe two same tx appear in one scenario
+        // console.log(`User [${this.userId}]'s [${txName}] started at time [${new Date().getTime()}] `)
+        const txId = `${txName}_${this.userId}_${this.iterationNum}`    // create tx id
+        const txInfo = new TxInfo()
+        txInfo.txName = txName
+        txInfo.startTime = new Date().getTime()
+        txInfo.userId = this.userId
+        txInfo.iterationNum = this.iterationNum
+
+        // add tx into dictionary
+        txDict[txId] = txInfo
+
+        statistics.trans_total++
     }
 
-    /**
-     * Step - 3: Call contract
-     */
-    
-    txSucc = await smc.callContract(issuerSeed, destSeed, transferValue, gasLimit)
-    if ( txSucc == false ){
-        retMsg.bSucc = false
-        retMsg.message = 'Smart contract callContract() failed.'
-        return retMsg
-    }
-    
+    transaction_end(txName, isPassed){
+        // console.log(`User [${this.userId}]'s [${txName}] got result (${isPassed}) at time [${new Date().getTime()}] `)
+        const txId = `${txName}_${this.userId}_${this.iterationNum}`
+        // get tx info from dict
+        const txInfo = txDict[txId]
+        if ( txInfo != undefined ){
+            txInfo.endTime = new Date().getTime()
+            txInfo.responseTime = (txInfo.endTime - txInfo.startTime)
+            txInfo.isPassed = isPassed
 
-    return retMsg
+            // finished tx count
+            statistics.trans_done++
+
+            statistics.addTxResultToStatistics(txInfo.userId, txInfo.isPassed, txInfo.responseTime)
+        }
+        else{
+            assert(false, `Cannot find transaction id: ${txId}`)
+        }
+    }
 }
+
+module.exports.TxResult = TxResult
+
+// create a tx dict, the key will be the tx id.
+var txDict = new Array()

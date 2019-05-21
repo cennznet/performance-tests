@@ -18,26 +18,13 @@ const { SimpleKeyring, Wallet } = require('@cennznet/wallet')
 const { Api } = require('@cennznet/api')
 const { WsProvider } = require('@cennznet/api/polkadot')
 const { GenericAsset}  = require('@cennznet/crml-generic-asset')
+const { sleep, CURRENCY } = require('./general')
 
-
-
-global.sampleMaxBlockTime = 0;
-global.sampleMaxBlockTxCnt = 0;
-// global.nonceList = [];
-
-// var api = null;
-var blockSubscriptionId = 0;
 
 const NodeSelectMethod = {
     SEQUENCE:   'seqence',
     RANDOM:     'random',
 }
-
-global.CURRENCY = {
-    STAKE:  16000,
-    SPEND:  16001,
-}
-
 
 
 class TxResult{
@@ -304,11 +291,29 @@ async function sendWaitConfirm(fromSeed, toAddress, amount) {
     return { bSucc, message };
 }
 
-async function transferWithManualNonce(fromSeed, toAddress, amount, isWaitResult = false) {
+async function transfer(fromSeed, toAddress, amount, isWaitResult = false) {
+
+    const api = await apiPool.getWsApi()
+
+    await setApiSigner(api, fromSeed)
+    const ga = await GenericAsset.create(api)
+
+    // convert to address if input is a seed
+    const _toAddress = await getAddressFromSeed(toAddress)
+
+    // Create a extrinsic
+    const transfer = ga.transfer(CURRENCY.SPEND, _toAddress, amount)
+
+    // send tx
+    const txResult = signAndSendTx(api, transfer, fromSeed, -1, waitFinalised = isWaitResult)
+
+    return txResult
+}
+
+async function transfer2(fromSeed, toAddress, amount, isWaitResult = false) {
 
     var bSucc = false;
     var message = "";
-    const txValidStatus = {'Future':0,'Ready':1,'Finalised':2,'Broadcast':4};
     let api = null
     const assetId = CURRENCY.SPEND
 
@@ -391,6 +396,7 @@ async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalise
         await transaction.send( async (r) => {
             // if donot wait, return straighaway
             if (waitFinalised != true){
+                txResult.bSucc = true
                 resolve(true); 
             }
 
@@ -428,66 +434,6 @@ async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalise
     });
 
     return txResult
-}
-
-
-async function subscribeBlockTx() {
-
-    // get first api
-    let api = apiPool.getWsApiById(0)
-
-    prevTime = new Date().getTime();
-
-    // Subscribe to the new headers on-chain. The callback is fired when new headers
-    // are found, the call itself returns a promise with a subscription that can be
-    // used to unsubscribe from the newHead subscription
-    const subscriptionId = await api.rpc.chain.subscribeNewHead(async (header) => {
-        // get block interval
-        let currTime = new Date().getTime();
-        let blockTxCnt = 0;
-        let blockTime = currTime - prevTime
-        // console.log('blockTime = ',blockTime)
-
-        if (blockTime > sampleMaxBlockTime){
-            sampleMaxBlockTime = blockTime    // get sampleMaxBlockTime
-        }
-        prevTime = currTime;
-
-        let blockNo = header.blockNumber;
-
-        let getBlockArgs = []
-        if (blockNo) {
-            if (blockNo.toString().startsWith('0x')) {
-                getBlockArgs = [blockNo]
-            } else {
-                getBlockArgs = [await api.rpc.chain.getBlockHash(+blockNo)]
-            }
-        }
-        // get block information
-        const block = await api.rpc.chain.getBlock(...getBlockArgs)
-        blockTxCnt = block.block.extrinsics.length - 2
-        if (blockTxCnt > sampleMaxBlockTxCnt){    // get sampleMaxBlockTxCnt
-            sampleMaxBlockTxCnt = blockTxCnt
-        }
-
-        // console.log(block.toJSON())  // block details
-
-        // for (const tx of block.block.extrinsics) {   // extrinsics details
-        //     console.log(tx.hash.toString(), ':', tx.method.meta.name.toString(), tx.method.toJSON())
-        // }
-    });
-
-    // Id for the subscription, we can cleanup and unsubscribe via
-    // `api.chain.newHead.unsubscribe(subscriptionId)`
-    // console.log(`subsciptionId: ${subscriptionId}`);
-    blockSubscriptionId = subscriptionId
-    return subscriptionId
-}
-
-async function unsubscribeBlockTx()
-{
-    let api = apiPool.getWsApiById(0)
-    await api.chain.newHead.unsubscribe(blockSubscriptionId);
 }
 
 async function sendMulti(fromSeed, toAddressList, amount, txCount) {
@@ -532,8 +478,7 @@ async function sendMulti(fromSeed, toAddressList, amount, txCount) {
     }
 }
 
-
-async function queryFreeBalance( address, assetId = CURRENCY.SPEND) {    // assetId: 0 - CENNZ, 10 - SPEND
+async function queryFreeBalance(address, assetId = CURRENCY.SPEND) {    // assetId: 0 - CENNZ, 10 - SPEND
 
     // get balance via GenericAsset
     const api = await apiPool.getWsApi()
@@ -545,6 +490,52 @@ async function queryFreeBalance( address, assetId = CURRENCY.SPEND) {    // asse
     return balance.toString();
 }
 
+module.exports.waitBalanceChange = async function(seed, assetId = CURRENCY.SPEND, timeLimitSec = 60 ){
+    // get api
+    // get balance via GenericAsset
+    const api = await apiPool.getWsApi()
+    const ga = await GenericAsset.create(api);
+    const address = getAddressFromSeed(seed)
+    const previous = await ga.getFreeBalance(assetId, address)
+    // console.log('previous =', previous.toString())
+    let i = 0
+
+    // check balance every second
+    for (let i = 0; i < timeLimitSec; i++ ){
+        let current = await ga.getFreeBalance(assetId, address)
+        // console.log('current =', current.toString())
+        if ( current.toString() != previous.toString() ) {
+            break
+        }
+        
+        await sleep(1000) // sleep for 1 s
+    }
+
+    // check if the balance changed
+    if (i >= timeLimitSec){
+        return false
+    }
+    else{
+        return true
+    }
+
+    // listen to balance change
+    const result = await new Promise(async (resolve, reject) => { 
+        ga.getFreeBalance(assetId, address, (current) => {
+            if (current == null || current <= 0 ){
+                return;
+            }
+            // console.log('current =', current.toString())
+            
+        }).catch((error) => {
+            reject(error)
+        });
+    })
+
+    return result
+}
+
+
 const apiPool = new ApiPool();
 const noncePool = new NoncePool();
 
@@ -554,10 +545,10 @@ module.exports.apiPool = apiPool
 module.exports.TxResult = TxResult 
 module.exports.sendWaitConfirm = sendWaitConfirm;
 module.exports.getAddrBal = getAddrBal;
-module.exports.subscribeBlockTx = subscribeBlockTx;
-module.exports.unsubscribeBlockTx = unsubscribeBlockTx;
+// module.exports.subscribeBlockTx = subscribeBlockTx;
+// module.exports.unsubscribeBlockTx = unsubscribeBlockTx;
 module.exports.sendMulti = sendMulti;
-module.exports.transferWithManualNonce = transferWithManualNonce;
+module.exports.transfer = transfer;
 module.exports.queryFreeBalance = queryFreeBalance;
 module.exports.setApiSigner = setApiSigner
 module.exports.signAndSendTx = signAndSendTx

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-const logResultFlag = false
+const logResultFlag = true
 
 const fs = require('fs');
 
@@ -50,7 +50,7 @@ module.exports.logRecord = logRecord
 module.exports.sleep = sleep
 module.exports.logResultFlag = logResultFlag
 
-
-
-// logRecord('hello')
-// logRecord('hello2')
+module.exports.CURRENCY = {
+    STAKE:  16000,
+    SPEND:  16001,
+}

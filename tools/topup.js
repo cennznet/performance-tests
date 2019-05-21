@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-const {transferWithManualNonce, apiPool} = require('../src/api/transactions')
+const {transfer, apiPool} = require('../src/api/transactions')
 const {loadAddrFile} = require('../src/parameter');
 const {sleep} = require('../src/api/general')
 
@@ -29,7 +29,7 @@ async function getArgs()
     const argv = require('yargs').argv;
     // argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
     argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'ws://127.0.0.1:9944');
-    argv.i ? interval = argv.i : interval = 100;    // time interval
+    argv.i ? interval = argv.i : interval = 10;    // time interval
     argv.e ? testEnv = argv.e : testEnv = 'local'   // test environment
     argv.c ? topupCnt = argv.c : topupCnt = 10000   // total address count to topup, default is 10k
     argv.s ? startNum = argv.s : startNum = 0;
@@ -53,7 +53,7 @@ async function topup(fileName, startId = 0, endId = 10000, amt = amount) {
         console.log(`tx = ${i}, ${seedFrom} -> ${seedTo}`)
 
         for ( let j = 0; j< 60; j++ ){
-            let retObj = await transferWithManualNonce( seedFrom, seedTo, amt);
+            let retObj = await transfer( seedFrom, seedTo, amt, false);
 
             if ( retObj.bSucc ) break;
             else {
