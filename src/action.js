@@ -21,12 +21,17 @@ const { transfer, waitBalanceChange } = require('./api/transactions')
 const endowedSeedLst = ['Alice', 'Bob', 'Charlie', 'Eve', 'Dave', 'Ferdie']
 var topupIndex = 0
 
+/**
+ * Class Action contains all runable methods which will be automatically invoked in sequence.
+ * 
+ * @ If the method name starts with '_', it will be ignored.
+ */
 module.exports.Action = class extends ScenarioBase{
     constructor(){
         super()
     }
 
-    async _playTransfer(){
+    async playTransfer(){
         let returnObj = [];
         let seedFrom = addressListFrom[this.userId];
         let seedTo = addressListTo[this.userId];

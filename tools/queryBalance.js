@@ -43,9 +43,6 @@ async function run() {
 run()
 
 /*  run cmd:
-    1. local:   
-        node tools/queryBalance -s James -a 16000 --ws ws://127.0.0.1:9944
-    2. remote:  
-        node tools/queryBalance -s Andrea -a 16000 --ws wss://cennznet-node-0.centrality.me:9944
+        node tools/queryBalance -s James -a 16000 --ws NODE_WS_ADDRESS:PORT
 */
 

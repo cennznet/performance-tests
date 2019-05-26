@@ -102,6 +102,5 @@ getArgs()
 main().catch(console.error);
 
 /*  run cmd:
-    1. local:   node tools/monitorBlockTxCnt
-    2. remote:  node tools/monitorBlockTxCnt --ws wss://cennznet-node-0.centrality.cloud:9944
+    node tools/monitorBlockTxCnt --ws NODE_WS_ADDRESS:PORT
 */

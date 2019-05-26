@@ -52,6 +52,5 @@ async function run() {
 run()
 
 /*  run cmd:
-    1. local:   node test/sendMultiTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 1000 -n 10 --ws ws://127.0.0.1:9944
-    2. dev:     node test/sendMultiTx -f Alice -t 5FoUu88WdqSzZwWP64NS2Amb2m8oXkSs5jYaFufbhrW2qcPG -a 1000 -n 10 --ws ws://3.1.51.215:9944
+        node test/sendMultiTx -f Alice -t Bob -a 1000 -n 10 --ws YOUR_WS_ADDRESS:PORT
 */

@@ -66,8 +66,5 @@ run()
 
 /**
  * run command:
- *      - local:  node test/sendOneTx -f Alice -t James -a 10000
- *      - Kauri:  node test/sendOneTx -f Andrea -t James -a 10000 --ws wss://cennznet-node-0.centrality.me:9944
+ *      node test/sendOneTx -f Alice -t James -a 10000 --ws YOUR_WS_ADDRESS:PORT
  */
-// 
-//      

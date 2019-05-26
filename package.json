@@ -10,7 +10,6 @@
         "@cennznet/types": "^0.12.3",
         "@cennznet/util": "^0.12.3",
         "@cennznet/wallet": "^0.12.3",
-        "babel-helper-bindify-decorators": "^6.24.1",
         "rickshaw": "^1.6.6",
         "socket.io": "^2.2.0",
         "yargs": "^13.2.2"

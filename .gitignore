@@ -1,4 +1,5 @@
 _*
 node_modules
-result*
+result
 .*
+coverage

@@ -92,5 +92,5 @@ async function run()
 run()
 
 /*  run cmd:
-    node tools/faucet --ws=wss://cennznet-node-0.centrality.me:9944
+    node tools/faucet --ws NODE_WS_ADDRESS:PORT
 */

@@ -65,8 +65,6 @@ run()
 
 /*  run cmd:
     1. local:   
-        node tools/queryBlock -h 0x33d18c0dbb259f2df7ffdf4c2e2b2cb438f74cb3d4f7256cde0949665a20b87a --ws ws://127.0.0.1:9944
-    2. remote:  
-        node tools/queryBlock -h 0x33d18c0dbb259f2df7ffdf4c2e2b2cb438f74cb3d4f7256cde0949665a20b87a --ws ws://3.1.51.215:9944
+        node tools/queryBlock -h <block_hash> --ws <NODE_WS_ADDRESS:PORT>
 */
 

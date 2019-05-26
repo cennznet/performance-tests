@@ -33,7 +33,7 @@ async function getArgs()
     argv.e ? testEnv = argv.e : testEnv = 'local'   // test environment
     argv.c ? topupCnt = argv.c : topupCnt = 10000   // total address count to topup, default is 10k
     argv.s ? startNum = argv.s : startNum = 0;
-    argv.a ? amount = argv.a : amount = '20000000000000000000';      // top-up amount
+    argv.a ? amount = argv.a : amount = '10000000000000000000';      // top-up amount
 }
 
 // test code
@@ -90,8 +90,6 @@ module.exports = topupAll;
 // topupAll()
 
 /*  run cmd:
-    1. local:   node src/run --topup
-            or: node src/run --topup -i 100 -s 0 -a 10000000000
-    2. dev:     node src/run --topup -i 50 -e local -s 0 -c 1000 --ws=ws://3.1.51.215:9944
-    3. uat:     node src/run --topup -i 0 -e uat --ws=wss://cennznet-node-0.centrality.cloud:9944
+            node src/run --topup
+        or: node src/run --topup -i 100 -s 0 -a 10000000000
 */

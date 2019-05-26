@@ -78,9 +78,6 @@ async function test() {
 test()
 
 /*  run cmd:
-    1. local:   
-        node tools/listenBalChange -a Alice --ws ws://127.0.0.1:9944
-    2. remote:  
-        node tools/listenBalChange -a James --ws wss://cennznet-node-0.centrality.me:9944
+        node tools/listenBalChange -a Alice --ws NODE_WS_ADDRESS:PORT
 */
 
