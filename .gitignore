@@ -3,3 +3,4 @@ node_modules
 result
 .*
 coverage
+package-lock.json

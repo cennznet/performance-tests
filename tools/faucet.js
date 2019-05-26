@@ -24,8 +24,7 @@ var fromSeedLst = [];
 async function getArgs()
 {
     const argv = require('yargs').argv;
-    // argv.ws ? wsIp = argv.ws : wsIp = 'ws://127.0.0.1:9944';
-    argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'wss://cennznet-node-1.centrality.cloud:9944');
+    argv.ws ? await apiPool.addWsIp(argv.ws) : await apiPool.addWsIp( 'ws://127.0.0.1:9944');
     argv.e ? testEnv = argv.e : testEnv = 'uat'   // test environment
 }
 
