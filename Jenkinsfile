@@ -26,6 +26,7 @@ pipeline {
 
         // echo 'list all images...'
         // sh 'docker images ls'
+        
       }
     }
 
