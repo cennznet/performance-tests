@@ -80,6 +80,17 @@ async function main() {
         console.log('block hash: ', block.block.hash.toString())
         console.log('extrinsics length = ', block.block.extrinsics.length - 1)
 
+        const currEraId = (await api.query.staking.currentEra()).toString()
+        const currSessionId = (await api.query.session.currentIndex()).toString()
+        const currEraReward = (await api.query.staking.currentEraReward()).toString() // era reward will change for each block
+        const currSessionTxFee = (await api.query.rewards.sessionTransactionFee()).toString()
+
+        console.log('currEraId =', currEraId)
+        console.log('currSessionId =', currSessionId)
+        console.log('currEraReward =', currEraReward)
+        console.log('currSessionTxFee =', currSessionTxFee)
+
+
         totalTxCnt += block.block.extrinsics.length - 1;
         console.log('Total processed tx count = ',totalTxCnt)
         
