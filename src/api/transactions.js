@@ -310,67 +310,6 @@ async function transfer(fromSeed, toAddress, amount, isWaitResult = false) {
     return txResult
 }
 
-async function transfer2(fromSeed, toAddress, amount, isWaitResult = false) {
-
-    var bSucc = false;
-    var message = "";
-    let api = null
-    const assetId = CURRENCY.SPEND
-
-    try {
-        api = await apiPool.getWsApi()
-
-        await setApiSigner(api, fromSeed)
-        const ga = await GenericAsset.create(api)
-
-        const fromAccount = getAccount(fromSeed)
-
-        // convert to address if input is a seed
-        const _toAddress = await getAddressFromSeed(toAddress)
-
-        // Get usable nounce
-        const nonce = await noncePool.getNewNonce(api, fromSeed)
-        // console.log('nonce = ',nonce.toString())
-        message = nonce.toString();
-
-        // Create a extrinsic
-        const transfer = ga.transfer(assetId, _toAddress, amount)
-        // Sign the transaction using account
-        transfer.sign(fromAccount, nonce);
-
-        // Send transaction
-        bSucc = await new Promise(async (resolve,reject) => {
-            
-            // const signedTx = transfer.sign(fromAccount, nonce);
-            
-            await transfer.send((r) => {
-                // console.log(`${fromSeed} -- type = `, r.type)
-                if (isWaitResult != true){
-                    resolve(true); 
-                }
-
-                // check status
-                if ( r.status.isFinalized == true && r.events !== undefined ){
-                    resolve(true);
-                }
-
-            }).catch((error) => {
-                console.log('Error =', error);
-                // done();
-            }); 
-        });
-    }
-    catch (e) {
-        message = e
-        bSucc = false
-        console.log('Error Msg = ', e)
-    }
-
-    // console.log(`<<<<<<<<<<<< ${fromSeed} out`)
-
-    return { bSucc, message };
-}
-
 async function signAndSendTx(api, transaction, seed, nonce_in = -1, waitFinalised = true){
     const txResult = new TxResult()
 

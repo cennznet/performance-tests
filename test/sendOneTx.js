@@ -33,8 +33,6 @@ async function send(fromSeed, toAddr, amount) {
 
     let toAddress = toAddr
 
-    
-
     let bal = await getAddrBal(toAddress);
     console.log('toAddress bal before = ', bal.toString())
     bal = await getAddrBal(fromSeed);

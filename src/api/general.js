@@ -19,6 +19,7 @@ const fs = require('fs');
 
 const recordFilePrefix = (new Date()).toJSON();
 
+// Wait for specified time
 function sleep(ms)
 {
     if (ms < 0) ms = 0;
